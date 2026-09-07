@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumina Electric Air | แดชบอร์ดผู้ดูแลระบบแอดมิน (Lumina 06)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap');
+:root{
+  --blue:#0879d9; --deep:#0755a5; --sky:#49c7f5; --ice:#eefaff; --white:#fff;
+  --text:#12385b; --muted:#6d8aa3; --line:#d7ebf7;
+  --shadow:0 12px 30px rgba(0,86,160,.12); --radius:16px;
+  --green:#0a9b63; --red:#d32f2f; --orange:#c47a00;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Noto Sans Thai',sans-serif;
+  color:var(--text);
+  background:linear-gradient(180deg,#dff7ff 0%,#f7fdff 55%,#e7f8ff 100%);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0}
+.app{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* Sidebar Navigation — blue bar / active menu white */
+.sidebar{
+  width:260px;
+  background:linear-gradient(180deg,#0567c8,#064b9c);
+  color:white;
+  padding:24px 16px;
+  position:fixed;
+  left:0;top:0;bottom:0;
+  z-index:10;
+  box-shadow:8px 0 25px rgba(0,85,165,0.15);
+  overflow-y:auto;
+}
+.brand{padding:6px 8px 20px;border-bottom:1px solid rgba(255,255,255,0.2);margin-bottom:16px}
+.logo{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.brand small{display:block;font-size:12px;opacity:.85;margin-top:2px}
+.nav{display:grid;gap:6px}
+.nav button{
+  background:transparent;
+  color:#e9f8ff;
+  text-align:left;
+  padding:10px 14px;
+  border-radius:12px;
+  font-weight:600;
+  font-size:13.5px;
+  transition:.2s;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:relative;
+}
+.nav button:hover{
+  background:rgba(255,255,255,0.08);
+  box-shadow:none;
+}
+.nav button.active{
+  background:#fff;
+  color:#0755a5;
+  box-shadow:0 4px 12px rgba(0,40,100,0.12);
+}
+.nav button.active::before{
+  content:"";
+  position:absolute;
+  left:-16px;
+  top:7px;
+  bottom:7px;
+  width:3px;
+  border-radius:0 3px 3px 0;
+  background:#fff;
+}
+.side-bottom{margin-top:24px;border-top:1px solid rgba(255,255,255,0.2);padding-top:16px;font-size:12px;opacity:.85;line-height:1.6}
+.side-bottom a{color:#fff;text-decoration:underline}
+
+/* Main Area */
+.main{margin-left:260px;width:calc(100% - 260px);padding:24px;min-width:0}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.greeting h1{margin:0;font-size:22px;font-weight:700}
+.greeting p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.top-status-badge{
+  padding:10px 18px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#fff;
+  transition: background-color 0.3s;
+}
+.top-status-badge.off{background:var(--red);}
+.top-status-badge.on{background:var(--green);}
+.status-dot{width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block}
+
+.page{display:none}
+.page.active{display:block}
+.grid{display:grid;gap:16px}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+
+.card{
+  background:rgba(255,255,255,0.95);
+  border:1px solid #fff;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:20px;
+  position:relative;
+}
+.card h2,.card h3{margin:0 0 12px;font-size:18px}
+.muted{color:var(--muted)}
+.btn{padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;background:var(--blue);color:white;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn.secondary{background:#e9f7ff;color:#0768b9}
+.btn.danger{background:#ffebee;color:var(--red)}
+.btn.success{background:#e8faf2;color:var(--green)}
+.btn.outline{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+.stat{display:flex;flex-direction:column;justify-content:center}
+.stat span{font-size:12px;color:var(--muted);margin-bottom:4px}
+.stat strong{font-size:22px;color:var(--text)}
+
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:20px 0 12px}
+.section-title h2{margin:0;font-size:18px;font-weight:700}
+
+.job-card{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fbfeff;margin-bottom:12px}
+.job-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.job-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+
+.tag{font-size:11px;background:#eaf7ff;color:#0675c8;padding:4px 10px;border-radius:20px;font-weight:700;display:inline-block}
+.tag.green{background:#e8faf2;color:var(--green)}
+.tag.orange{background:#fff6e8;color:var(--orange)}
+.tag.red{background:#ffebee;color:var(--red)}
+.tag.gray{background:#f0f4f8;color:var(--muted)}
+
+.list{display:grid;gap:10px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;gap:10px}
+
+/* Clock Header Banner */
+.clock-banner{display:flex;gap:12px;margin-bottom:16px}
+.clock-btn{flex:1;padding:16px;border-radius:14px;font-size:15px;font-weight:700;color:#fff;text-align:center;transition:.2s;border:0;cursor:pointer}
+.clock-btn.in{background:var(--green)}
+.clock-btn.out{background:var(--red)}
+.clock-btn:hover{filter:brightness(1.05)}
+
+/* Team Structure */
+.team-section-header{font-size:15px;font-weight:700;color:var(--text);margin:16px 0 12px;}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+.team-card{border:1px solid var(--line);border-radius:16px;padding:20px;background:#fff;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.03)}
+.team-avatar{width:56px;height:56px;border-radius:50%;background:#eaf7ff;color:var(--blue);display:grid;place-items:center;font-size:18px;font-weight:800;margin:0 auto 12px}
+.team-card-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;}
+
+/* Interactive Chat System */
+.chat-layout{display:grid;grid-template-columns:260px 1fr;gap:16px;height:560px;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+.chat-users{border-right:1px solid var(--line);overflow-y:auto;background:#fcfdfe}
+.user-item{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;transition:.2s}
+.user-item:hover,.user-item.active{background:#eefaff}
+.user-item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.chat-main{display:flex;flex-direction:column;height:100%;padding:16px;background:#fff}
+.chat-box{border:1px solid var(--line);border-radius:14px;flex:1;background:#fafcfe;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;max-height:410px;}
+.chat-msg{max-width:75%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;word-break:break-word;}
+.chat-msg.other{background:#eefaff;color:var(--text);align-self:flex-start;border:1px solid var(--line)}
+.chat-msg.me{background:var(--blue);color:#fff;align-self:flex-end}
+.chat-input{display:flex;gap:8px}
+.chat-input input{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 14px;outline:none}
+
+/* Filter Cards */
+.filter-card{background:#f8fdff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px}
+.filter-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:12px;margin-top:12px}
+.filter-group{display:flex;flex-direction:column;gap:6px}
+.filter-group label{font-size:12px;font-weight:700;color:var(--deep)}
+.filter-group select, .filter-group input{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;outline:none}
+
+/* Horizontal Scroll Tabs */
+.cust-scroll-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px;scroll-behavior:smooth;}
+.cust-scroll-tabs::-webkit-scrollbar{height:6px}
+.cust-scroll-tabs::-webkit-scrollbar-thumb{background:var(--sky);border-radius:10px}
+.cust-tab-btn{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid var(--line);white-space:nowrap;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:.2s}
+.cust-tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* Filter Pills */
+.filter-pills{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.pill-btn{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--text);cursor:pointer;}
+.pill-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* Product Grid */
+.product-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:16px}
+.product-card{border:1px solid var(--line);border-radius:16px;padding:18px;background:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 15px rgba(0,85,165,0.05)}
+.product-badge-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.product-brand{font-weight:800;font-size:14px;color:var(--deep)}
+.product-model{font-weight:700;font-size:18px;color:var(--text);margin-bottom:6px}
+.product-specs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#f4fbff;padding:10px;border-radius:10px;font-size:12px;margin:10px 0;border:1px solid #e1f3ff}
+.product-price-bar{display:flex;justify-content:space-between;align-items:flex-end;padding-top:10px;border-top:1px dashed var(--line)}
+.product-price{font-size:20px;font-weight:800;color:var(--blue)}
+
+/* House Section */
+.house-section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.02)}
+.house-section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* Tables */
+.table-responsive{overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+th,td{padding:12px 14px;text-align:left;font-size:13px;border-bottom:1px solid var(--line)}
+th{background-color:#eaf7ff;color:var(--deep);font-weight:700}
+tr:last-child td{border-bottom:none}
+
+/* Modal & Toast */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,30,60,0.5);z-index:30;place-items:center;padding:16px}
+.modal.show{display:grid}
+.modal-box{background:white;border-radius:18px;padding:24px;max-width:600px;width:100%;max-height:90vh;overflow:auto;position:relative}
+.close{position:absolute;right:16px;top:16px;background:#f0f4f8;border-radius:50%;width:32px;height:32px;font-size:16px;color:var(--muted);border:0;cursor:pointer}
+.toast{position:fixed;right:24px;bottom:24px;background:#063f82;color:#fff;padding:14px 20px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:40;font-size:13px}
+
+@media(max-width:1100px){
+  .product-grid,.team-grid{grid-template-columns:repeat(2, 1fr)}
+}
+@media(max-width:900px){
+  .sidebar{width:70px;padding:16px 8px}
+  .logo,.brand small,.nav span,.side-bottom{display:none}
+  .main{margin-left:70px;width:calc(100% - 70px);padding:16px}
+  .grid-4,.grid-3,.grid-2,.team-grid,.chat-layout,.product-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar Navigation (ไม่มีคำขอใช้แต้มโบนัส) -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">LUMINA</div>
+      <small>ระบบปฏิบัติการแอดมิน (v05)</small>
+    </div>
+    <nav class="nav">
+      <button class="active" data-page="home"><span>หน้าหลัก</span></button>
+      <button data-page="products"><span>สินค้า & ราคา</span></button>
+      <button data-page="bookings"><span>รายการการจอง</span></button>
+      <button data-page="pending"><span>งานที่รอแจกจ่าย</span></button>
+      <button data-page="assigned"><span>งานวันนี้ที่แจกจ่ายแล้ว</span></button>
+      <button data-page="error-codes"><span>Error Code / ซ่อม</span></button>
+      <button data-page="customers"><span>ข้อมูลลูกค้า</span></button>
+      <button data-page="customer-assets"><span>บ้าน & เครื่องของลูกค้า</span></button>
+      <button data-page="customer-chat"><span>แชทลูกค้า</span></button>
+      <button data-page="teams"><span>จัดการทีมช่าง</span></button>
+      <button data-page="technician-chat"><span>แชทกับช่าง</span></button>
+      <button data-page="settings"><span>ตั้งค่าร้าน</span></button>
+      <button data-page="profile"><span>โปรไฟล์แอดมิน</span></button>
+    </nav>
+    <div class="side-bottom">
+      <b>สำนักงาน Lumina Electric Air</b><br>
+      📞 โทร: <a href="tel:02-000-0000">02-000-0000</a><br>
+      💬 LINE OA: <a href="https://line.me/R/ti/p/@420rkehz" target="_blank">@420rkehz</a><br>
+      แอดมินประจำการ: สมศรี
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <header class="topbar">
+      <div class="greeting">
+        <h1>สวัสดี แอดมินสมศรี (Admin Officer)</h1>
+        <p id="currentDate"></p>
+      </div>
+      <div class="top-status-badge off" id="topStatusBadge">
+        <span class="status-dot"></span>
+        <span id="topStatusText">นอกเวลาปฏิบัติงาน</span>
+      </div>
+    </header>
+
+    <!-- PAGE 1: หน้าหลัก -->
+    <section class="page active" id="home">
+      <div class="section-title">
+        <h2>ภาพรวมการปฏิบัติงานวันนี้</h2>
+      </div>
+      <div class="grid grid-4">
+        <div class="card stat"><span>งานรอแจกจ่าย</span><strong id="homePendingCount">5 รายการ</strong></div>
+        <div class="card stat"><span>งานที่แจกจ่ายแล้ว</span><strong>3 รายการ</strong></div>
+        <div class="card stat"><span>งานที่กำลังดำเนินการ</span><strong>3 รายการ</strong></div>
+        <div class="card stat"><span>งานเสร็จสิ้นวันนี้</span><strong>2 รายการ</strong></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;border-left:4px solid var(--red);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <b>การติดตาม Error Code ขัดข้องจากอุปกรณ์ (IoT/Blynk)</b>
+            <p class="muted" style="margin:4px 0 0;font-size:13px;">
+              พบ Error Code 2 รายการในระบบ (คุณวิชัย: U4, คุณประเสริฐ: E1)
+            </p>
+          </div>
+          <button class="btn danger" onclick="navigateToPage('error-codes')">ดู Error Code ทั้งหมด</button>
+        </div>
+      </div>
+
+      <!-- โปรโมชั่นหน้าหลัก -->
+      <div class="section-title">
+        <h2>โปรโมชั่นปัจจุบันของ Lumina Electric Air</h2>
+        <button class="btn" onclick="addPromo()">+ เพิ่มโปรโมชั่น</button>
+      </div>
+      <div class="card">
+        <div id="promoContainer" class="list">
+          <div class="row">
+            <div>
+              <b style="color:var(--deep);font-size:15px;">1. โปรโมชั่นเครื่องปรับอากาศส่วนลดพิเศษ</b>
+              <div style="font-size:13px;margin-top:4px;line-height:1.5;">
+                ส่วนลดพิเศษสำหรับเครื่องปรับอากาศรุ่นที่ร่วมรายการ พร้อมสิทธิ์บริการติดตั้งตามเงื่อนไขของร้าน<br>
+                <span class="tag green" style="margin-top:4px;">สิทธิพิเศษสำหรับลูกค้าใหม่</span> เมื่อซื้อเครื่องปรับอากาศตั้งแต่ 3 เครื่องขึ้นไป รับส่วนลดทันที 5,000 บาท <i>(สามารถใช้ร่วมกับคูปองและบัตรสะสมแต้มจาก LINE ได้)</i>
+              </div>
+            </div>
+            <div style="min-width:130px;text-align:right;">
+              <button class="btn secondary" onclick="editPromo(this)">แก้ไข</button>
+              <button class="btn danger" onclick="deletePromo(this)">ลบ</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <b style="color:var(--deep);font-size:15px;">2. โปรโมชั่นล้างแอร์ราคาพิเศษสำหรับลูกค้า Lumina</b>
+              <div style="font-size:13px;margin-top:4px;line-height:1.5;">
+                บริการล้างเครื่องปรับอากาศในราคาพิเศษสำหรับลูกค้า Lumina<br>
+                <b>• ลูกค้าเก่า รับส่วนลด 5% &nbsp;|&nbsp; • ลูกค้าใหม่ รับส่วนลด 20%</b><br>
+                <i>(สามารถใช้ร่วมกับคูปองและบัตรสะสมแต้มจาก LINE ตามเงื่อนไขและระยะเวลาที่กำหนด)</i>
+              </div>
+            </div>
+            <div style="min-width:130px;text-align:right;">
+              <button class="btn secondary" onclick="editPromo(this)">แก้ไข</button>
+              <button class="btn danger" onclick="deletePromo(this)">ลบ</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <b style="color:var(--deep);font-size:15px;">3. ส่วนลดพิเศษสำหรับแลกเครื่องปรับอากาศเครื่องเก่า</b>
+              <div style="font-size:13px;margin-top:4px;line-height:1.5;">
+                ลูกค้าสามารถนำเครื่องปรับอากาศเครื่องเก่ามาประเมิน เพื่อรับส่วนลดสำหรับการซื้อเครื่องใหม่<br>
+                ส่วนลดขึ้นอยู่กับ: <b>รุ่น, สภาพเครื่อง, อายุการใช้งาน และเงื่อนไขของทางร้าน</b>
+              </div>
+            </div>
+            <div style="min-width:130px;text-align:right;">
+              <button class="btn secondary" onclick="editPromo(this)">แก้ไข</button>
+              <button class="btn danger" onclick="deletePromo(this)">ลบ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 2: สินค้า & ราคา -->
+    <section class="page" id="products">
+      <div class="section-title">
+        <h2>ฐานข้อมูลสินค้า & ราคาเครื่องปรับอากาศ (Catalog & Stock)</h2>
+      </div>
+
+      <div class="filter-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <b style="font-size:15px;color:var(--deep);">ระบบค้นหาและกรองสินค้า (Filters)</b>
+          <button class="btn outline" style="font-size:12px;" onclick="clearProductFilters()">ล้างตัวกรอง</button>
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:12px;font-weight:700;margin-bottom:5px;">ค้นหาสินค้า</label>
+          <input id="productSearch" type="search" placeholder="พิมพ์ค้นหาแบรนด์ รุ่น หรือประเภทสินค้า..." oninput="applyProductFilters()" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;outline:none;box-sizing:border-box;">
+        </div>
+        <div class="filter-row">
+          <!-- 1. รูปแบบแอร์ (Category) -->
+          <div class="filter-group">
+            <label>รูปแบบแอร์ (Category)</label>
+            <select id="filterCategory" onchange="applyProductFilters()">
+              <option value="ALL">ทุกรูปแบบแอร์</option>
+              <option value="ติดผนัง">แอร์ติดผนัง (Wall Mounted)</option>
+              <option value="ตั้งแขวน">แอร์ตั้งแขวน (Ceiling/Floor)</option>
+              <option value="สี่ทิศทาง">แอร์ฝังฝ้า 4 ทิศทาง (Cassette)</option>
+            </select>
+          </div>
+
+          <!-- 2. สถานะโปรโมชั่น (Promo) -->
+          <div class="filter-group">
+            <label>สถานะโปรโมชั่น (Promo)</label>
+            <select id="filterPromo" onchange="applyProductFilters()">
+              <option value="ALL">โปรโมชั่นทั้งหมด</option>
+              <option value="HAS_PROMO">เฉพาะสินค้ามีโปรโมชั่น</option>
+              <option value="NO_PROMO">สินค้าไม่มีโปรโมชั่น</option>
+            </select>
+          </div>
+
+          <!-- 3. ระบบ (Type) -->
+          <div class="filter-group">
+            <label>ระบบ (Type)</label>
+            <select id="filterType" onchange="applyProductFilters()">
+              <option value="ALL">ประเภททั้งหมด</option>
+              <option value="Inverter">Inverter</option>
+              <option value="Standard">Standard</option>
+            </select>
+          </div>
+
+          <!-- 4. BTU -->
+          <div class="filter-group">
+            <label>ขนาด BTU</label>
+            <select id="filterBtu" onchange="applyProductFilters()">
+              <option value="ALL">ทุกขนาด BTU</option>
+              <option value="12000">12,000 BTU</option>
+              <option value="18000">18,000 BTU</option>
+              <option value="24000">24,000 BTU</option>
+            </select>
+          </div>
+
+          <!-- 5. ช่วงราคา (Price) -->
+          <div class="filter-group">
+            <label>ช่วงราคา (Price)</label>
+            <select id="filterPrice" onchange="applyProductFilters()">
+              <option value="ALL">ราคาทั้งหมด</option>
+              <option value="20000">ไม่เกิน 20,000 บาท</option>
+              <option value="25000">ไม่เกิน 25,000 บาท</option>
+              <option value="30000">ไม่เกิน 30,000 บาท</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="productGridContainer" class="product-grid"></div>
+    </section>
+
+    <!-- PAGE 3: รายการการจอง -->
+    <section class="page" id="bookings">
+      <div class="section-title">
+        <h2>รายการการจองจากทุกช่องทาง (Bookings)</h2>
+        <button class="btn" onclick="openCreateBookingModal()">+ สร้าง Booking ใหม่ (LINE / Walk-in / Phone)</button>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Booking ID</th><th>ลูกค้า</th><th>ประเภทบริการ</th><th>วันที่ - เวลา</th><th>ที่อยู่จัดส่ง/บริการ</th><th>เบอร์โทร</th><th>สถานะคิวงาน</th></tr></thead>
+            <tbody id="bookingTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4: งานที่รอแจกจ่าย -->
+    <section class="page" id="pending">
+      <div class="section-title"><h2>งานที่รอแจกจ่ายให้ทีมช่าง</h2></div>
+      <div class="list" id="pendingJobList"></div>
+    </section>
+
+    <!-- PAGE 5: งานที่แจกจ่ายแล้ว -->
+    <section class="page" id="assigned">
+      <div class="section-title"><h2>ติดตามสถานะงานที่แจกจ่ายแล้ว</h2></div>
+      <div id="assignedJobList"></div>
+    </section>
+
+    <!-- PAGE 6: ERROR CODE / ซ่อม -->
+    <section class="page" id="error-codes">
+      <div class="section-title"><h2>การจัดการ Error Code จากอุปกรณ์ (เชื่อมโยงฐานข้อมูลลูกค้า)</h2></div>
+      <div class="card"><div class="table-responsive">
+        <table>
+          <thead><tr><th>Error Code ID</th><th>ลูกค้า / อุปกรณ์</th><th>รหัส Error</th><th>รายละเอียดอาการ</th><th>สถานะคิว</th><th>การจัดการ Admin</th></tr></thead>
+          <tbody id="errorCodeTableBody"></tbody>
+        </table>
+      </div></div>
+    </section>
+
+    <!-- PAGE 7: ฐานข้อมูลลูกค้า -->
+    <section class="page" id="customers">
+      <div class="section-title">
+        <h2>ฐานข้อมูลลูกค้าทั้งหมด</h2>
+        <button class="btn" onclick="showToast('เพิ่มข้อมูลลูกค้าใหม่เรียบร้อยแล้วค่ะ')">+ เพิ่มลูกค้า / เพิ่มงานจองคิว</button>
+      </div>
+      <div class="filter-pills">
+        <button class="pill-btn active" onclick="filterCustomerTable('ALL', this)">ลูกค้าทั้งหมด</button>
+        <button class="pill-btn" onclick="filterCustomerTable('HAS_QUEUE', this)">มีคิวงาน / จองคิวอยู่</button>
+        <button class="pill-btn" onclick="filterCustomerTable('NORMAL', this)">เคยใช้บริการแล้ว</button>
+      </div>
+      <div class="card"><div class="table-responsive">
+        <table>
+          <thead><tr><th>ชื่อลูกค้า</th><th>เบอร์โทรศัพท์</th><th>ที่อยู่</th><th>แอร์ในดูแล</th><th>บริการล่าสุด</th><th>สถานะคิวปัจจุบัน</th><th>การจัดการ</th></tr></thead>
+          <tbody id="customerTableBody"></tbody>
+        </table>
+      </div></div>
+    </section>
+
+    <!-- PAGE 8: บ้าน & เครื่องของลูกค้า -->
+    <section class="page" id="customer-assets">
+      <div class="section-title"><h2>ข้อมูลเครื่องปรับอากาศและบ้านของลูกค้า</h2></div>
+      <div class="cust-scroll-tabs" id="customerAssetTabs"></div>
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0;" id="assetMainTitle"></h3>
+        <div class="muted" style="font-size:13px;margin-top:2px;" id="assetSubTitle"></div>
+      </div>
+      <div id="assetContent"></div>
+    </section>
+
+    <!-- PAGE 9: แชทลูกค้า -->
+    <section class="page" id="customer-chat">
+      <div class="section-title"><h2>ศูนย์สนทนาแชทกับลูกค้า (Customer Chat)</h2></div>
+      <div class="chat-layout">
+        <div class="chat-users" id="customerUserList"></div>
+        <div class="chat-main">
+          <div style="padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <b id="activeCustomerTitle"></b>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn secondary" style="font-size:11px;" onclick="toggleCustomerPin()" id="pinCustomerBtn">📌 ปักหมุดแชท</button>
+              <button class="btn success" style="font-size:11px;" onclick="sendPaymentInfoToChat()">💳 ส่งบัญชีโอนเงิน</button>
+              <button class="btn secondary" style="font-size:11px;" onclick="sendPhoneInfoToChat()">📞 ส่งเบอร์สำนักงาน</button>
+            </div>
+          </div>
+          <div class="chat-box" id="custChatBox"></div>
+          <div class="chat-input">
+            <input type="text" id="custChatInput" placeholder="พิมพ์ข้อความตอบกลับลูกค้า (ลงท้าย ค่ะ/นะคะ)..." onkeydown="if(event.key==='Enter') sendCustMsg()">
+            <button class="btn" onclick="sendCustMsg()">ส่งข้อความ</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 10: จัดการทีมช่าง -->
+    <section class="page" id="teams">
+      <div class="section-title"><h2>จัดการข้อมูลทีมช่าง</h2><button class="btn success" onclick="addNewTeamModal()">+ เพิ่มทีมช่างใหม่</button></div>
+      <div id="teamManagementContainer"></div>
+    </section>
+
+    <!-- PAGE 11: แชทกับช่าง -->
+    <section class="page" id="technician-chat">
+      <div class="section-title"><h2>ระบบแชทสื่อสารกับช่าง</h2></div>
+      <div class="chat-layout">
+        <div class="chat-users" id="techUserList"></div>
+        <div class="chat-main">
+          <div style="padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:10px;"><b id="activeTechTitle"></b></div>
+          <div class="chat-box" id="techChatBox"></div>
+          <div class="chat-input">
+            <input type="text" id="techChatInput" placeholder="พิมพ์ข้อความสื่อสารกับช่าง (ลงท้าย ค่ะ/นะคะ)..." onkeydown="if(event.key==='Enter') sendTechMsg()">
+            <button class="btn" onclick="sendTechMsg()">ส่งข้อความ</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 13: ตั้งค่าร้าน -->
+    <section class="page" id="settings">
+      <div class="section-title">
+        <h2>ตั้งค่าข้อมูลร้าน & ช่องทางการติดต่อ (Store Settings)</h2>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>ข้อมูลสำนักงานหลัก</h3>
+          <div class="list">
+            <div class="row"><span>ชื่อร้าน</span><b>Lumina Electric Air</b></div>
+            <div class="row"><span>เบอร์โทรศัพท์สำนักงาน</span><b>02-000-0000</b></div>
+            <div class="row"><span>LINE Official Account</span><b><a href="https://line.me/R/ti/p/@420rkehz" target="_blank" style="color:var(--blue);text-decoration:none;">@420rkehz</a></b></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>ตั้งค่าการแจ้งเตือน & บัญชี</h3>
+          <div class="list">
+            <div class="row"><span>การเชื่อมต่อ Blynk IoT</span><span class="tag green">เชื่อมต่อแล้ว</span></div>
+            <div class="row"><span>การเชื่อมต่อ LINE Notification</span><span class="tag green">เชื่อมต่อแล้ว</span></div>
+            <div class="row"><span>เวอร์ชันระบบ</span><b>Lumina Admin v05.0</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 14: โปรไฟล์แอดมิน -->
+    <section class="page" id="profile">
+      <div class="clock-banner">
+        <button class="clock-btn in" onclick="setWorkStatus(true)">เข้าปฏิบัติงาน (Clock-In)</button>
+        <button class="clock-btn out" onclick="setWorkStatus(false)">เลิกปฏิบัติงาน (Clock-Out)</button>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>ข้อมูลส่วนตัวแอดมิน</h3>
+          <div class="list">
+            <div class="row"><span>ชื่อ-นามสกุล</span><b>แอดมินสมศรี</b></div>
+            <div class="row"><span>ตำแหน่งงาน</span><b>Admin Officer</b></div>
+            <div class="row"><span>เบอร์โทรศัพท์</span><b>081-554-3322</b></div>
+            <div class="row"><span>อีเมล</span><b>somsri@lumina.com</b></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>สถิติการปฏิบัติงาน</h3>
+          <div class="grid grid-2" style="margin-top:10px;">
+            <div class="card stat" style="background:#e8faf2;"><span>มาทำงาน</span><strong style="color:var(--green);">22 วัน</strong></div>
+            <div class="card stat" style="background:#fff6e8;"><span>สาย</span><strong style="color:var(--orange);">0 วัน</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal Container -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =========================
+// SHARED DATA MODEL
+// =========================
+const PRODUCTS_DATA = [
+  { id: "P01", brand: "Daikin", model: "FTKF18XV2S", category: "ติดผนัง", type: "Inverter", btu: 18000, price: 23900, hasPromo: true },
+  { id: "P02", brand: "Mitsubishi", model: "MSY-GY18VF", category: "ติดผนัง", type: "Inverter", btu: 18000, price: 24900, hasPromo: false },
+  { id: "P03", brand: "Carrier", model: "42TVAB013", category: "ติดผนัง", type: "Inverter", btu: 12000, price: 18900, hasPromo: true },
+  { id: "P04", brand: "LG", model: "ISQ12", category: "ติดผนัง", type: "Inverter", btu: 12000, price: 17900, hasPromo: false },
+  { id: "P05", brand: "Daikin", model: "FTKF24WV2S", category: "ตั้งแขวน", type: "Inverter", btu: 24000, price: 31900, hasPromo: false },
+  { id: "P06", brand: "Carrier", model: "42TVDA018", category: "สี่ทิศทาง", type: "Standard", btu: 18000, price: 21900, hasPromo: false }
+];
+
+const BONUS_LIST = [
+  { id: 1, title: "ส่วนลดชมภาพยนตร์ 200 บาท", pts: 500 },
+  { id: 2, title: "ส่วนลดร้านอาหาร 500 บาท", pts: 800 },
+  { id: 3, title: "เงินช่วยเหลือค่าใช้จ่ายจิปาถะ 2,000 บาท", pts: 1000 },
+  { id: 4, title: "โบนัสพิเศษประจำเดือน เพิ่ม 30%", pts: 3500 },
+  { id: 5, title: "วันหยุดพิเศษ 1 สัปดาห์ (เลือกวันเอง)", pts: 4000 }
+];
+
+const TECHNICIANS_DATA = [
+  {id:'T01',name:'ช่างพีช',team:'ทีม A',position:'หัวหน้าทีม',age:25,phone:'081-111-2233',expertise:'ระบบ Inverter และงานซ่อมบอร์ด',experience:'5 ปี',status:'กำลังปฏิบัติงาน',points:1250,clockIn:'08:15 น.',clockOut:'-', chat:[['tech','แอดมินครับ ตอนนี้ผมกำลังเดินทางไปบ้านคุณเธียรภัทร์นะครับ'],['admin','รับทราบค่ะช่างพีช เดินทางปลอดภัยและระมัดระวังนะคะ']]},
+  {id:'T02',name:'ช่างปั้น',team:'ทีม A',position:'ผู้ช่วยช่าง',age:23,phone:'081-111-2234',expertise:'ติดตั้งแอร์และเดินระบบไฟ',experience:'3 ปี',status:'กำลังปฏิบัติงาน',points:900,clockIn:'08:18 น.',clockOut:'-', chat:[['tech','เตรียมอุปกรณ์ติดตั้งเรียบร้อยครับ'],['admin','รับทราบค่ะช่างปั้น ตรวจอุปกรณ์ให้ครบก่อนออกงานนะคะ']]},
+  {id:'T03',name:'ช่างทิว',team:'ทีม A',position:'ช่างฝึกหัด',age:21,phone:'081-111-2235',expertise:'ล้างแอร์และบำรุงรักษา',experience:'1 ปี',status:'กำลังปฏิบัติงาน',points:600,clockIn:'08:20 น.',clockOut:'-', chat:[['tech','วันนี้ผมประจำทีม A ครับ'],['admin','รับทราบค่ะช่างทิว']]},
+  {id:'T04',name:'ช่างหยก',team:'ทีม B',position:'หัวหน้าทีม',age:24,phone:'082-222-3344',expertise:'ล้างแอร์และวิเคราะห์อาการเสีย',experience:'4 ปี',status:'กำลังปฏิบัติงาน',points:1500,clockIn:'08:22 น.',clockOut:'-', chat:[['tech','ล้างแอร์บ้านคุณอนันต์เสร็จแล้วค่ะ'],['admin','รับทราบค่ะช่างหยก บันทึกงานเรียบร้อยนะคะ']]},
+  {id:'T05',name:'ช่างซานต้า',team:'ทีม B',position:'ผู้ช่วยช่าง',age:24,phone:'082-222-3345',expertise:'ระบบน้ำยาและงานติดตั้ง',experience:'3 ปี',status:'กำลังปฏิบัติงาน',points:1100,clockIn:'08:23 น.',clockOut:'-', chat:[['tech','ผมกำลังช่วยทีม B ตรวจอุปกรณ์ครับ'],['admin','รับทราบค่ะช่างซานต้า']]},
+  {id:'T06',name:'ช่างบอส',team:'ทีม B',position:'ช่างฝึกหัด',age:21,phone:'082-222-3346',expertise:'ล้างแอร์และงานพื้นฐาน',experience:'1 ปี',status:'กำลังปฏิบัติงาน',points:850,clockIn:'08:25 น.',clockOut:'-', chat:[['tech','กำลังเตรียมอุปกรณ์เสริมครับ'],['admin','รับทราบค่ะช่างบอส ตรวจรายการอุปกรณ์อีกครั้งนะคะ']]},
+  {id:'T07',name:'ช่างบะหมี่',team:'ทีม C',position:'หัวหน้าทีม',age:21,phone:'083-333-4455',expertise:'ตรวจรั่วและระบบน้ำยา',experience:'4 ปี',status:'กำลังปฏิบัติงาน',points:1300,clockIn:'08:28 น.',clockOut:'-', chat:[['tech','เช็กแอร์รั่วบ้านคุณกิตติเรียบร้อยค่ะ'],['admin','รับทราบค่ะช่างบะหมี่']]},
+  {id:'T08',name:'ช่างเอมิล',team:'ทีม C',position:'ผู้ช่วยช่าง',age:21,phone:'083-333-4456',expertise:'ติดตั้งและบำรุงรักษา',experience:'2 ปี',status:'กำลังปฏิบัติงาน',points:950,clockIn:'08:29 น.',clockOut:'-', chat:[['tech','วันนี้ฉันช่วยทีม C ค่ะ'],['admin','รับทราบค่ะช่างเอมิล']]},
+  {id:'T09',name:'ช่างภีม',team:'ทีม C',position:'ช่างฝึกหัด',age:20,phone:'083-333-4457',expertise:'ล้างแอร์และตรวจเช็กเบื้องต้น',experience:'1 ปี',status:'กำลังปฏิบัติงาน',points:700,clockIn:'08:30 น.',clockOut:'-', chat:[['tech','ตรวจอุปกรณ์ก่อนออกงานเรียบร้อยครับ'],['admin','รับทราบค่ะช่างภีม']]}
+];
+
+const CUSTOMERS_DATA = [
+  {id:'C01',name:'คุณเธียรภัทร์',phone:'082-123-4567',address:'ถนนทหาร ซอยสุขสว่าง อ.เมืองอุดรธานี',statusType:'HAS_QUEUE',lastService:'15 ม.ค. 2026 (ล้างแอร์)',queue:'มีคิววันนี้ (ทีม A)',pinned:true,houses:[
+    {name:'บ้านหลัก',address:'ถนนทหาร ซอยสุขสว่าง',airs:[{room:'ห้องนอนใหญ่',product:'P01',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน 2',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'อาคารพาณิชย์ ชั้น 1',product:'P02',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]},
+    {name:'บ้านคุณตาคุณยาย',address:'ซอยสุขสว่าง',airs:[{room:'ห้องโถงรับแขก',product:'P04',status:'เสีย (ตามแจ้ง)',arduino:'ไม่มี Arduino (เสียตามที่ลูกค้าบอก)'},{room:'ห้องนอน',product:'P01',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]},
+    {name:'บ้านคุณปู่คุณย่า',address:'ซอยสุขสว่าง',airs:[{room:'ห้องนั่งเล่น',product:'P02',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}
+  ]},
+  {id:'C02',name:'คุณสมพงศ์',phone:'084-556-7788',address:'ถนนอุดรดุษฎี ซอยมิตรภาพ อ.เมืองอุดรธานี',statusType:'HAS_QUEUE',lastService:'02 ก.พ. 2026 (ซ่อมบอร์ด)',queue:'มีคิววันนี้ (ทีม A)',pinned:false,houses:[{name:'บ้านคุณสมพงศ์',address:'ถนนอุดรดุษฎี ซอยมิตรภาพ',airs:[{room:'ห้องนั่งเล่น',product:'P02',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]},
+  {id:'C03',name:'คุณชลธาร',phone:'089-776-5544',address:'ถนนโพศรี ซอยจินตคาม อ.เมืองอุดรธานี',statusType:'HAS_QUEUE',lastService:'10 ธ.ค. 2025 (ติดตั้งใหม่)',queue:'มีคิววันนี้ (ทีม A)',pinned:false,houses:[{name:'บ้านคุณชลธาร',address:'ถนนโพศรี ซอยจินตคาม',airs:[{room:'ห้องรับแขก',product:'P05',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอนใหญ่',product:'P01',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องทำงาน',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]},
+  {id:'C04',name:'คุณอนันต์',phone:'083-445-6677',address:'ถนนวัฒนานุวงศ์ อ.เมืองอุดรธานี',statusType:'HAS_QUEUE',lastService:'วันนี้ (ล้างแอร์)',queue:'เสร็จแล้ววันนี้ (ทีม B)',pinned:false,houses:[{name:'บ้านคุณอนันต์',address:'ถนนวัฒนานุวงศ์',airs:[{room:'ห้องรับแขก',product:'P04',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]},
+  {id:'C05',name:'คุณนภา',phone:'081-223-9911',address:'ถนนศุภกิจจินดา อ.เมืองอุดรธานี',statusType:'HAS_QUEUE',lastService:'วันนี้ (เช็กน้ำยา)',queue:'มีคิววันนี้ (ทีม B)',pinned:false,houses:[{name:'บ้านคุณนภา',address:'ถนนศุภกิจจินดา',airs:[{room:'ห้องรับแขก',product:'P01',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน',product:'P04',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]},
+  {id:'C06',name:'คุณกิตติ',phone:'087-112-3344',address:'ถนนรอบเมือง อ.เมืองอุดรธานี',statusType:'HAS_QUEUE',lastService:'วันนี้ (เช็กแอร์รั่ว)',queue:'เสร็จแล้ววันนี้ (ทีม C)',pinned:false,houses:[{name:'บ้านคุณกิตติ',address:'ถนนรอบเมือง',airs:[{room:'ห้องรับแขก',product:'P02',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน 1',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน 2',product:'P04',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องทำงาน',product:'P01',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]},
+  {id:'C07',name:'คุณวิชัย',phone:'081-443-8899',address:'ถนนสุรการ อ.เมืองอุดรธานี',statusType:'HAS_QUEUE',lastService:'12 พ.ย. 2025 (ล้างแอร์)',queue:'มีคิวตรวจสอบ Error U4 (ทีม C)',pinned:false,houses:[{name:'บ้านคุณวิชัย',address:'ถนนสุรการ',airs:[{room:'ห้องรับแขก',product:'P05',status:'เสีย (Error U4)',errorCode:'U4',arduino:'แจ้งเตือน Error U4'},{room:'ห้องนอน',product:'P01',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องทำงาน',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]},
+  {id:'C08',name:'คุณรัตนา',phone:'089-221-5544',address:'ถนนศรีสุข ซอย 3 อ.เมืองอุดรธานี',statusType:'NORMAL',lastService:'20 ธ.ค. 2025 (เติมน้ำยา)',queue:'ยังไม่มีคิวใหม่ (แอร์ปกติ)',pinned:false,houses:[{name:'บ้านคุณรัตนา',address:'ถนนศรีสุข ซอย 3',airs:[{room:'ห้องรับแขก',product:'P02',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอนใหญ่',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน 2',product:'P04',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องทำงาน',product:'P01',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องโถง',product:'P06',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]},
+  {id:'C09',name:'คุณประเสริฐ',phone:'086-778-9900',address:'ถนนพรหมประกาย อ.เมืองอุดรธานี',statusType:'HAS_QUEUE',lastService:'08 ม.ค. 2026 (ติดตั้งใหม่)',queue:'มีคิวตรวจสอบ Error E1 (ทีม C)',pinned:false,houses:[{name:'บ้านคุณประเสริฐ',address:'ถนนพรหมประกาย',airs:[{room:'ห้องรับแขก',product:'P01',status:'เสีย (Error E1)',errorCode:'E1',arduino:'แจ้งเตือน Error E1'},{room:'ห้องนอน',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]},
+  {id:'C10',name:'คุณดารินทร์',phone:'082-334-1122',address:'ถนนเลี่ยงเมือง อ.เมืองอุดรธานี',statusType:'NORMAL',lastService:'14 ก.พ. 2026 (ล้างประจำปี)',queue:'ยังไม่มีคิวใหม่ (แอร์ปกติ)',pinned:false,houses:[{name:'บ้านคุณดารินทร์',address:'ถนนเลี่ยงเมือง',airs:[{room:'ห้องรับแขก',product:'P05',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอนใหญ่',product:'P02',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน 2',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องทำงาน',product:'P04',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]}
+];
+
+const JOBS_DATA = [
+  {id:'JOB-C-20260915-001',bookingId:'BKC-20260915-001',customerId:'C01',service:'ล้างแอร์ประจำปี',date:'วันนี้',time:'10:00',team:'ทีม A',status:'pending'},
+  {id:'JOB-A-20260915-001',bookingId:'BKA-20260915-001',customerId:'C03',service:'ติดตั้งเครื่องใหม่',date:'พรุ่งนี้',time:'09:00',team:'ทีม A',status:'pending'},
+  {id:'JOB-D-20260915-001',bookingId:'BKD-20260915-001',customerId:'C05',service:'เช็กน้ำยาแอร์',date:'พรุ่งนี้',time:'13:00',team:'ทีม B',status:'pending'},
+  {id:'JOB-E-20260915-001',bookingId:'BKE-20260915-001',customerId:'C07',service:'ตรวจสอบ Error Code U4',date:'18 ก.ย. 2026',time:'10:00',team:'ทีม C',status:'pending'},
+  {id:'JOB-E-20260915-002',bookingId:'BKE-20260915-002',customerId:'C09',service:'ตรวจสอบ Error Code E1',date:'19 ก.ย. 2026',time:'09:30',team:'ทีม C',status:'pending'},
+  {id:'JOB-D-20260915-002',bookingId:'BKD-20260915-002',customerId:'C02',service:'ตรวจสอบระบบปรับอากาศ',date:'วันนี้',time:'11:00',team:'ทีม A',status:'assigned',progress:'กำลังปฏิบัติงาน'},
+  {id:'JOB-B-20260915-001',bookingId:'BKB-20260915-001',customerId:'C04',service:'ล้างแอร์บ้าน',date:'วันนี้',time:'09:00',team:'ทีม B',status:'done',progress:'เสร็จแล้ววันนี้'},
+  {id:'JOB-B-20260915-002',bookingId:'BKB-20260915-002',customerId:'C06',service:'เช็กแอร์รั่ว',date:'วันนี้',time:'11:30',team:'ทีม C',status:'done',progress:'เสร็จแล้ววันนี้'}
+];
+
+// Error-code scope for this demo: E1 / U4 / F0 / normal only.
+// Verified current demo mappings: Daikin FTKF-X series supports E1 and U4; F0 is retained as an allowed code only when a future registered model has an official manual that defines it.
+const ERROR_CODES_DATA = [
+  {id:'ERR-001',customerId:'C07',room:'ห้องรับแขก',code:'U4',detail:'ข้อผิดพลาดในการสื่อสารระหว่างเครื่องภายในและเครื่องภายนอก',team:'ทีม C',jobId:'JOB-E-20260915-001'},
+  {id:'ERR-002',customerId:'C09',room:'ห้องรับแขก',code:'E1',detail:'แผงวงจรอิเล็กทรอนิกส์ของเครื่องภายนอกผิดปกติ',team:'ทีม C',jobId:'JOB-E-20260915-002'}
+];
+
+const CUSTOMER_CHATS = Object.fromEntries(CUSTOMERS_DATA.map(c => [c.id, [
+  ['customer', c.id==='C01' ? 'สวัสดีค่ะ ต้องการสอบถามเรื่องการโอนชำระเงินค่าวางบิลค่ะ' : `สวัสดีค่ะ ขอสอบถามเรื่องบริการของ Lumina ค่ะ`],
+  ['admin', `สวัสดีค่ะ${c.name} แอดมินยินดีให้บริการค่ะ มีอะไรให้ช่วยแจ้งได้เลยนะคะ`]
+]]));
+
+let currentCustomerId = 'C01';
+let currentTechId = 'T01';
+let isWorking = false;
+
+function getCustomer(id){ return CUSTOMERS_DATA.find(c=>c.id===id); }
+function getTech(id){ return TECHNICIANS_DATA.find(t=>t.id===id); }
+function customerAirCount(c){ return c.houses.reduce((sum,h)=>sum+h.airs.length,0); }
+function customerHouseCount(c){ return c.houses.length; }
+function esc(value){ return String(value).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+function tagClass(text){ return /เสีย|Error|มีคิว|กำลัง/.test(text) ? 'red' : /เสร็จ|ปกติ/.test(text) ? 'green' : 'orange'; }
+
+// =========================
+// INITIALIZATION / NAVIGATION
+// =========================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('currentDate').textContent = new Intl.DateTimeFormat('th-TH',{dateStyle:'full'}).format(new Date());
+  document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>navigateToPage(btn.dataset.page)));
+  renderProducts(PRODUCTS_DATA);
+  renderAllData();
+  setTimeout(()=>selectCustomerChat('C01'),0);
+  setTimeout(()=>selectTechChat('T01'),0);
+});
+
+function navigateToPage(pageId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const target=document.getElementById(pageId); if(target) target.classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===pageId));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(window.toastTimer); window.toastTimer=setTimeout(()=>t.style.display='none',3200); }
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+// =========================
+// HOME / JOBS / ERROR DATA
+// =========================
+function renderAllData(){
+  renderHomeStats(); renderBookings(); renderPendingJobs(); renderAssignedJobs(); renderErrors();
+  renderCustomers(); renderCustomerAssetTabs(); renderCustomerAssets(currentCustomerId);
+  renderCustomerChatList(); renderTeamManagement(); renderTechChatList();
+}
+function renderHomeStats(){
+  const pending=JOBS_DATA.filter(j=>j.status==='pending').length;
+  const assigned=JOBS_DATA.filter(j=>j.status==='assigned').length;
+  const done=JOBS_DATA.filter(j=>j.status==='done').length;
+  const active=assigned;
+  document.getElementById('homePendingCount').textContent=`${pending} รายการ`;
+  const stats=document.querySelectorAll('#home .grid-4 .stat strong');
+  if(stats[1]) stats[1].textContent=`${assigned+done} รายการ`;
+  if(stats[2]) stats[2].textContent=`${active} รายการ`;
+  if(stats[3]) stats[3].textContent=`${done} รายการ`;
+}
+function renderBookings(){
+  const body=document.getElementById('bookingTableBody'); if(!body)return;
+  body.innerHTML=JOBS_DATA.map(j=>{const c=getCustomer(j.customerId); return `<tr><td><b>${j.bookingId||'-'}</b><div class="muted" style="font-size:10px;margin-top:3px;">JOB: ${j.id}</div></td><td>${c.name}</td><td><span class="tag ${j.status==='done'?'green':j.status==='assigned'?'red':''}">${j.service}</span></td><td>${j.date} (${j.time})</td><td>${c.address}</td><td>${c.phone}</td><td><span class="tag ${j.status==='done'?'green':j.status==='assigned'?'red':'orange'}">${j.status==='done'?'เสร็จแล้ว':j.status==='assigned'?`${j.progress} (${j.team})`:`รอแจกงาน (${j.team})`}</span></td></tr>`}).join('');
+}
+function renderPendingJobs(){
+  const box=document.getElementById('pendingJobList'); if(!box)return;
+  const pending=JOBS_DATA.filter(j=>j.status==='pending');
+  box.innerHTML=pending.map(j=>{const c=getCustomer(j.customerId);return `<div class="job-card" data-job-id="${j.id}"><div class="job-head"><div><b style="font-size:16px;">${j.id} — ${c.name}</b><div class="muted" style="margin-top:4px;">ประเภทงาน: <b>[${j.service}]</b> ${customerAirCount(c)} เครื่อง</div><div class="muted">นัดหมาย: ${j.date} เวลา ${j.time} น. | ที่อยู่: ${c.address}</div></div><span class="tag orange">สถานะ: รอแจกงาน</span></div><div class="job-actions"><button class="btn" onclick="assignJob('${j.id}','ทีม A')">แจกงานให้ ทีม A</button><button class="btn" onclick="assignJob('${j.id}','ทีม B')">แจกงานให้ ทีม B</button><button class="btn" onclick="assignJob('${j.id}','ทีม C')">แจกงานให้ ทีม C</button></div></div>`}).join('');
+}
+function renderAssignedJobs(){
+  const box=document.getElementById('assignedJobList'); if(!box)return;
+  box.innerHTML=JOBS_DATA.filter(j=>j.status!=='pending').map(j=>{const c=getCustomer(j.customerId);const cls=j.status==='done'?'green':'orange';return `<div class="job-card" style="border-left:4px solid var(--${cls});"><div class="job-head"><div><b style="font-size:16px;">${j.id} — ${c.name}</b><div class="muted" style="margin-top:2px;">ประเภทงาน: <b>[${j.service}]</b> | ทีมรับผิดชอบ: <b>${j.team}</b> | ${customerAirCount(c)} เครื่อง</div><div class="muted">สถานที่: ${c.address}</div></div><span class="tag ${cls}">${j.team}: ${j.progress}</span></div></div>`}).join('');
+}
+function renderErrors(){
+  const body=document.getElementById('errorCodeTableBody'); if(!body)return;
+  body.innerHTML=ERROR_CODES_DATA.map(e=>{const c=getCustomer(e.customerId);return `<tr><td><b>${e.id}</b></td><td>${c.name} (${e.room})</td><td><span class="tag red">${e.code}</span></td><td>${e.detail}</td><td><span class="tag red">${e.team}</span><div class="muted" style="font-size:10px;margin-top:3px;">JOB: ${e.jobId}</div></td><td><button class="btn secondary" style="font-size:11px;" onclick="showToast('ติดตามคิวงาน ${e.team} เรียบร้อยค่ะ')">ติดตามคิว ${e.team}</button></td></tr>`}).join('');
+}
+function assignJob(jobId,team){const job=JOBS_DATA.find(j=>j.id===jobId);if(!job)return;job.status='assigned';job.team=team;job.progress='กำลังปฏิบัติงาน';renderAllData();showToast(`มอบหมาย ${jobId} ให้ ${team} แล้วค่ะ`);}
+function openCreateBookingModal(){openModal(`<h3>สร้าง Booking ใหม่</h3><p class="muted">Demo นี้ใช้ข้อมูลลูกค้าชุดกลางเพื่อป้องกันข้อมูลข้ามคน</p><button class="btn" style="width:100%;margin-top:12px;" onclick="closeModal();showToast('เปิดแบบฟอร์ม Booking ใหม่แล้วค่ะ')">เริ่มสร้าง Booking</button>`);}
+function addPromo(){showToast('เปิดแบบฟอร์มเพิ่มโปรโมชั่นแล้วค่ะ');}
+function editPromo(){showToast('เปิดแบบฟอร์มแก้ไขโปรโมชั่นแล้วค่ะ');}
+function deletePromo(){showToast('ลบโปรโมชั่นเรียบร้อยแล้วค่ะ');}
+
+// =========================
+// CUSTOMER DATA / ASSETS
+// =========================
+function renderCustomers(){
+  const body=document.getElementById('customerTableBody'); if(!body)return;
+  body.innerHTML=CUSTOMERS_DATA.map((c,i)=>`<tr data-type="${c.statusType}" data-customer-id="${c.id}"><td><b>${i+1}. ${c.name}</b></td><td>${c.phone}</td><td>${c.address}</td><td>${customerAirCount(c)} เครื่อง (${customerHouseCount(c)} บ้าน)</td><td>${c.lastService}</td><td><span class="tag ${tagClass(c.queue)}">${c.queue}</span></td><td><button class="btn secondary" style="font-size:11px;" onclick="openCustomer('${c.id}')">ดูบ้าน & เครื่อง</button></td></tr>`).join('');
+}
+function filterCustomerTable(filterType,btn){document.querySelectorAll('.filter-pills .pill-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#customerTableBody tr').forEach(row=>row.style.display=filterType==='ALL'||row.dataset.type===filterType?'':'none');}
+function openCustomer(id){currentCustomerId=id;renderCustomerAssets(id);navigateToPage('customer-assets');}
+function renderCustomerAssetTabs(){
+  const box=document.getElementById('customerAssetTabs'); if(!box)return;
+  box.innerHTML=CUSTOMERS_DATA.map((c,i)=>`<button class="cust-tab-btn ${c.id===currentCustomerId?'active':''}" onclick="switchCustomerAssetTab('${c.id}',this)">${i+1}. ${c.name} (${customerAirCount(c)} เครื่อง)</button>`).join('');
+}
+function switchCustomerAssetTab(id,btn){currentCustomerId=id;document.querySelectorAll('.cust-scroll-tabs .cust-tab-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderCustomerAssets(id);}
+function getAirStatusInfo(a){
+  const code=(a.errorCode||'normal').toUpperCase();
+  if(['E1','U4','F0'].includes(code)){
+    const detailMap={
+      E1:'ตรวจพบความผิดปกติของแผงวงจร',
+      U4:'ตรวจพบข้อผิดพลาดในการสื่อสารระหว่างเครื่องภายในและเครื่องภายนอก',
+      F0:'ตรวจพบรหัสข้อผิดพลาด F0 ตามฐานข้อมูลของรุ่นเครื่อง'
+    };
+    return {label:`ขัดข้อง — Error Code ${code}`,tag:'red',detail:`ระบบติดตามอุปกรณ์ตรวจพบ ${code}: ${detailMap[code]}`,formal:`ตรวจพบความผิดปกติและได้รับรหัส ${code} จากระบบติดตามอุปกรณ์`};
+  }
+  if(/ไม่มี Arduino|ไม่ได้ติดตั้ง Arduino/i.test(a.arduino)){
+    return {label:'ขัดข้อง — ไม่ได้ติดตั้ง Arduino',tag:'red',detail:'ไม่ได้ติดตั้ง Arduino จึงไม่สามารถรับ Error Code จากอุปกรณ์ได้',formal:'ลูกค้าแจ้งว่าเครื่องปรับอากาศขัดข้อง และไม่มี Arduino สำหรับส่งข้อมูล Error Code'};
+  }
+  return {label:'ปกติ (Normal)',tag:'green',detail:'ระบบติดตามอุปกรณ์รายงานสถานะปกติ',formal:'ไม่พบความผิดปกติจากข้อมูลที่ได้รับ'};
+}
+
+function getAirLastCleaned(a,c,airIndex){
+  if(a.lastCleaned)return a.lastCleaned;
+  const defaults=['15 ม.ค. 2026','2 ก.พ. 2026','10 ธ.ค. 2025','20 ม.ค. 2026','14 ก.พ. 2026'];
+  return defaults[airIndex%defaults.length];
+}
+function getAirWarranty(a,airIndex){
+  if(a.warrantyUntil)return a.warrantyUntil;
+  const defaults=['15 ม.ค. 2028','2 ก.พ. 2028','10 ธ.ค. 2027','20 ม.ค. 2028','14 ก.พ. 2028'];
+  return defaults[airIndex%defaults.length];
+}
+
+function renderCustomerAssets(id){
+  const c=getCustomer(id);if(!c)return;currentCustomerId=id;renderCustomerAssetTabs();
+  document.getElementById('assetMainTitle').textContent=`รายละเอียดเครื่องปรับอากาศ: ${c.name}`;
+  document.getElementById('assetSubTitle').textContent=`บ้าน ${customerHouseCount(c)} หลัง มีเครื่องปรับอากาศรวม ${customerAirCount(c)} เครื่อง (ข้อมูลของลูกค้าคนนี้เท่านั้น)`;
+  let globalIndex=0;
+  document.getElementById('assetContent').innerHTML=c.houses.map((h,houseIndex)=>`<div class="house-section"><div class="house-section-title"><span>🏠 ${esc(h.name)} — เครื่องปรับอากาศจำนวน ${h.airs.length} เครื่อง</span><span class="tag">${esc(h.address)}</span></div><div class="grid grid-3">${h.airs.map((a,airIndex)=>{
+    const p=PRODUCTS_DATA.find(x=>x.id===a.product);
+    const index=globalIndex++;
+    const status=getAirStatusInfo(a);
+    const bad=status.tag==='red';
+    return `<div class="card" style="padding:14px;border-top:3px solid var(--${bad?'red':'green'});">
+      <div class="job-head" style="gap:8px;align-items:flex-start;">
+        <b>เครื่องที่ ${index+1}: ${esc(a.room)}</b>
+        <span class="tag ${status.tag}">${esc(status.label)}</span>
+      </div>
+      <div style="display:grid;gap:7px;margin-top:12px;font-size:12px;">
+        <div class="row"><span>แบรนด์</span><b>${esc(p?.brand||'ไม่ระบุ')}</b></div>
+        <div class="row"><span>รุ่น</span><b>${esc(p?.model||'ไม่ระบุ')}</b></div>
+        <div class="row"><span>ขนาด</span><b>${p?.btu ? p.btu.toLocaleString()+' BTU' : 'ไม่ระบุ'}</b></div>
+      </div>
+      <div style="margin-top:10px;padding:9px 10px;border-radius:9px;background:${bad?'#fff4f4':'#f1fbf6'};font-size:12px;line-height:1.5;color:${bad?'var(--red)':'var(--muted)'};">
+        <b>${bad?'สถานะอุปกรณ์':'สถานะระบบ'}</b><br>${esc(status.detail)}
+        ${bad&&/ไม่มี Arduino/i.test(status.label)?`<br><span style="font-style:italic;">${esc(status.formal)}</span>`:''}
+      </div>
+      <button class="btn secondary" style="width:100%;font-size:11px;margin-top:10px;" onclick="viewAirDetails('${c.id}',${houseIndex},${airIndex})">กดดูรายละเอียดเครื่อง</button>
+    </div>`;
+  }).join('')}</div></div>`).join('');
+}
+function viewAirDetails(customerId,houseIndex,airIndex){
+  const c=getCustomer(customerId);if(!c||!c.houses[houseIndex]||!c.houses[houseIndex].airs[airIndex])return;
+  const h=c.houses[houseIndex],a=h.airs[airIndex],p=PRODUCTS_DATA.find(x=>x.id===a.product),status=getAirStatusInfo(a);
+  const lastCleaned=getAirLastCleaned(a,c,airIndex),warranty=getAirWarranty(a,airIndex);
+  openModal(`<h3>รายละเอียดเครื่องปรับอากาศ</h3><div class="list" style="margin-top:12px;">
+    <div class="row"><span>ลูกค้า</span><b>${esc(c.name)}</b></div>
+    <div class="row"><span>บ้าน</span><b>${esc(h.name)}</b></div>
+    <div class="row"><span>ห้อง</span><b>${esc(a.room)}</b></div>
+    <div class="row"><span>แบรนด์</span><b>${esc(p?.brand||'ไม่ระบุ')}</b></div>
+    <div class="row"><span>รุ่น</span><b>${esc(p?.model||'ไม่ระบุ')}</b></div>
+    <div class="row"><span>ขนาด</span><b>${p?.btu?p.btu.toLocaleString()+' BTU':'ไม่ระบุ'}</b></div>
+    <div class="row"><span>ล้างล่าสุด</span><b>${esc(lastCleaned)}</b></div>
+    <div class="row"><span>ประกันสิ้นสุด</span><b>${esc(warranty)}</b></div>
+    <div class="row"><span>สถานะ</span><b class="tag ${status.tag}">${esc(status.label)}</b></div>
+    <div class="row"><span>รายละเอียดสถานะ</span><b>${esc(status.detail)}</b></div>
+    ${status.tag==='red'&&/ไม่มี Arduino/i.test(status.label)?`<div class="row"><span>หมายเหตุ</span><b>${esc(status.formal)}</b></div>`:''}
+  </div><button class="btn" style="margin-top:16px;width:100%;" onclick="closeModal()">ปิดหน้าต่าง</button>`);
+}
+// =========================
+// CUSTOMER CHAT
+// =========================
+function renderCustomerChatList(){
+  const box=document.getElementById('customerUserList');if(!box)return;
+  const ordered=[...CUSTOMERS_DATA].sort((a,b)=>Number(b.pinned)-Number(a.pinned));
+  box.innerHTML=ordered.map(c=>`<div class="user-item ${c.id===currentCustomerId?'active':''}" onclick="selectCustomerChat('${c.id}')"><div class="user-item-head"><b>${c.name}</b><span style="display:flex;gap:4px;align-items:center;"><span class="tag ${tagClass(c.queue)}">${c.statusType==='HAS_QUEUE'?'มีคิว':'ปกติ'}</span>${c.pinned?'<span title="ปักหมุด">📌</span>':''}</span></div><div class="muted" style="font-size:11px;">${c.queue}</div></div>`).join('');
+}
+function selectCustomerChat(id){currentCustomerId=id;renderCustomerChatList();const c=getCustomer(id);document.getElementById('activeCustomerTitle').textContent=`ห้องสนทนา: ${c.name}`;document.getElementById('pinCustomerBtn').textContent=c.pinned?'📌 ยกเลิกปักหมุด':'📌 ปักหมุดแชท';renderCustomerChatMessages();}
+function renderCustomerChatMessages(){const box=document.getElementById('custChatBox');const msgs=CUSTOMER_CHATS[currentCustomerId]||[];box.innerHTML=msgs.map(m=>`<div class="chat-msg ${m[0]==='admin'?'me':'other'}">${esc(m[1])}</div>`).join('');box.scrollTop=box.scrollHeight;}
+function sendCustMsg(){const input=document.getElementById('custChatInput');const text=input.value.trim();if(!text)return;CUSTOMER_CHATS[currentCustomerId].push(['admin',text]);input.value='';renderCustomerChatMessages();showToast(`ส่งข้อความถึง ${getCustomer(currentCustomerId).name} แล้วค่ะ`);}
+function toggleCustomerPin(){const c=getCustomer(currentCustomerId);c.pinned=!c.pinned;renderCustomerChatList();document.getElementById('pinCustomerBtn').textContent=c.pinned?'📌 ยกเลิกปักหมุด':'📌 ปักหมุดแชท';showToast(c.pinned?`ปักหมุดแชท ${c.name} แล้วค่ะ`:`ยกเลิกปักหมุดแชท ${c.name} แล้วค่ะ`);}
+function sendPaymentInfoToChat(){CUSTOMER_CHATS[currentCustomerId].push(['admin','💳 ข้อมูลโอนเงินค่ะ\nธนาคารกสิกรไทย: 123-4-56789-0\nชื่อบัญชี: Lumina Electric Air']);renderCustomerChatMessages();showToast('ส่งข้อมูลบัญชีชำระเงินเรียบร้อยแล้วค่ะ');}
+function sendPhoneInfoToChat(){CUSTOMER_CHATS[currentCustomerId].push(['admin','📞 เบอร์ติดต่อสำนักงาน Lumina: 02-000-0000 ค่ะ']);renderCustomerChatMessages();showToast('ส่งเบอร์สำนักงานเรียบร้อยแล้วค่ะ');}
+
+// =========================
+// TECHNICIAN MANAGEMENT
+// =========================
+function renderTeamManagement(){
+  const box=document.getElementById('teamManagementContainer');if(!box)return;
+  const teams=[...new Set(TECHNICIANS_DATA.map(t=>t.team))];
+  box.innerHTML=teams.map(team=>{const members=TECHNICIANS_DATA.filter(t=>t.team===team);return `<div class="team-section-header">${team} (ช่าง ${members.length} คน | วันนี้ลงเวลาแล้ว ${members.filter(t=>t.clockIn).length} คน)</div><div class="team-grid">${members.map(t=>`<div class="team-card"><div class="team-avatar">${esc(t.name.replace('ช่าง',''))}</div><b style="font-size:16px;">${esc(t.name)} (${esc(t.position)})</b><div class="muted" style="font-size:12px;margin-top:4px;">อายุ ${t.age} ปี | ${esc(t.phone)}</div><div style="font-size:12px;margin-top:6px;color:var(--muted);">${esc(t.expertise)}</div><div style="font-size:12px;margin-top:6px;">วันนี้: <b>${t.clockIn||'-'}</b> - <b>${t.clockOut||'-'}</b></div><div style="margin-top:8px;"><span class="tag green">${esc(t.status)}</span></div><div class="team-card-btns"><button class="btn secondary" style="font-size:12px;" onclick="editTechProfile('${t.id}')">แก้ไขข้อมูล</button><button class="btn" style="font-size:12px;" onclick="openTechBonusExchange('${t.id}')">แลกโบนัส</button><button class="btn outline" style="font-size:12px;" onclick="viewTechDetails('${t.id}')">ดูรายละเอียด</button><button class="btn outline" style="font-size:12px;" onclick="openTechChatFromTeam('${t.id}')">เปิดแชท</button></div></div>`).join('')}</div>`}).join('');
+}
+function addNewTeamModal(){openModal(`<h3>+ เพิ่มทีมช่างใหม่</h3><div style="display:grid;gap:10px;margin-top:14px;"><label style="font-size:12px;font-weight:700;">ชื่อทีม:</label><input id="newTeamName" type="text" placeholder="เช่น ทีม D" style="padding:8px;border:1px solid var(--line);border-radius:8px;"><label style="font-size:12px;font-weight:700;">ชื่อหัวหน้าทีม:</label><input id="newTeamLeader" type="text" placeholder="ระบุชื่อหัวหน้าทีม" style="padding:8px;border:1px solid var(--line);border-radius:8px;"></div><button class="btn success" style="margin-top:16px;width:100%;" onclick="saveNewTeam()">บันทึกเพิ่มทีม</button>`);}
+function saveNewTeam(){const name=document.getElementById('newTeamName').value.trim();const leader=document.getElementById('newTeamLeader').value.trim();closeModal();showToast(name?`เพิ่ม ${name}${leader?' โดยมี '+leader+' เป็นหัวหน้าทีม':''} เรียบร้อยแล้วค่ะ`:'กรุณาระบุชื่อทีมก่อนค่ะ');}
+function viewTechDetails(id){const t=getTech(id);openModal(`<h3>${esc(t.name)}</h3><div class="list" style="margin-top:12px;"><div class="row"><span>ทีม</span><b>${esc(t.team)}</b></div><div class="row"><span>ตำแหน่ง</span><b>${esc(t.position)}</b></div><div class="row"><span>เบอร์โทรศัพท์</span><b>${esc(t.phone)}</b></div><div class="row"><span>อายุ</span><b>${t.age} ปี</b></div><div class="row"><span>ความเชี่ยวชาญ</span><b>${esc(t.expertise)}</b></div><div class="row"><span>ประสบการณ์</span><b>${esc(t.experience)}</b></div><div class="row"><span>เวลาเข้า - ออกวันนี้</span><b>${t.clockIn||'-'} - ${t.clockOut||'-'}</b></div><div class="row"><span>แต้มสะสม</span><b>${t.points.toLocaleString()} แต้ม</b></div></div><button class="btn" style="width:100%;margin-top:14px;" onclick="closeModal()">ปิด</button>`);}
+function editTechProfile(id){const t=getTech(id);openModal(`<h3>แก้ไขข้อมูล: ${esc(t.name)}</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;"><label style="font-size:12px;font-weight:700;grid-column:1/-1;">ชื่อช่าง:<input id="editTechName" type="text" value="${esc(t.name)}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label><label style="font-size:12px;font-weight:700;">เบอร์โทรศัพท์:<input id="editTechPhone" type="text" value="${esc(t.phone)}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label><label style="font-size:12px;font-weight:700;">อายุ:<input id="editTechAge" type="number" value="${t.age}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label><label style="font-size:12px;font-weight:700;">ทีม:<input id="editTechTeam" type="text" value="${esc(t.team)}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label><label style="font-size:12px;font-weight:700;">ตำแหน่ง:<input id="editTechPosition" type="text" value="${esc(t.position)}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label><label style="font-size:12px;font-weight:700;grid-column:1/-1;">ความเชี่ยวชาญ:<input id="editTechExpertise" type="text" value="${esc(t.expertise)}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label><label style="font-size:12px;font-weight:700;">ประสบการณ์:<input id="editTechExperience" type="text" value="${esc(t.experience)}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label><label style="font-size:12px;font-weight:700;">สถานะ:<select id="editTechStatus" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"><option ${t.status==='กำลังปฏิบัติงาน'?'selected':''}>กำลังปฏิบัติงาน</option><option ${t.status==='พร้อมรับงาน'?'selected':''}>พร้อมรับงาน</option><option ${t.status==='หยุดงาน'?'selected':''}>หยุดงาน</option></select></label><label style="font-size:12px;font-weight:700;">เวลาเข้า:<input id="editClockIn" type="text" value="${esc(t.clockIn||'')}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label><label style="font-size:12px;font-weight:700;">เวลาออก:<input id="editClockOut" type="text" value="${esc(t.clockOut||'')}" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-top:4px;"></label></div><button class="btn success" style="margin-top:16px;width:100%;" onclick="saveTechProfile('${id}')">บันทึกแก้ไข</button>`);}
+function saveTechProfile(id){const t=getTech(id);if(!t)return;const oldName=t.name;t.name=document.getElementById('editTechName').value.trim()||t.name;t.phone=document.getElementById('editTechPhone').value.trim();t.age=Number(document.getElementById('editTechAge').value)||t.age;t.team=document.getElementById('editTechTeam').value.trim()||t.team;t.position=document.getElementById('editTechPosition').value.trim()||t.position;t.expertise=document.getElementById('editTechExpertise').value.trim()||t.expertise;t.experience=document.getElementById('editTechExperience').value.trim()||t.experience;t.status=document.getElementById('editTechStatus').value;t.clockIn=document.getElementById('editClockIn').value.trim()||'-';t.clockOut=document.getElementById('editClockOut').value.trim()||'-';closeModal();renderAllData();showToast(`อัปเดตข้อมูล ${oldName} เรียบร้อยแล้วค่ะ`);}
+function openTechBonusExchange(id){const t=getTech(id);const options=BONUS_LIST.map(b=>`<option value="${b.id}">${b.title} (ใช้ ${b.pts} แต้ม)</option>`).join('');openModal(`<h3>แลกโบนัสสวัสดิการ: ${esc(t.name)}</h3><div class="list" style="margin-top:12px;"><div class="row"><span>ช่าง</span><b>${esc(t.name)}</b></div><div class="row"><span>แต้มปัจจุบัน</span><b>${t.points.toLocaleString()} แต้ม</b></div></div><div style="display:grid;gap:10px;margin-top:14px;"><label style="font-size:12px;font-weight:700;">เลือกรายการโบนัส:</label><select id="selectedBonusId" style="padding:10px;border:1px solid var(--line);border-radius:8px;">${options}</select></div><button class="btn" style="margin-top:16px;width:100%;" onclick="confirmTechBonus('${id}')">ยืนยันแลกโบนัส</button>`);}
+function confirmTechBonus(id){const t=getTech(id);const item=BONUS_LIST.find(b=>b.id==document.getElementById('selectedBonusId').value);if(t.points<item.pts){closeModal();showToast(`แต้มของ ${t.name} ไม่เพียงพอค่ะ`);return;}t.points-=item.pts;closeModal();renderTeamManagement();showToast(`${t.name} แลก ${item.title} สำเร็จ หัก ${item.pts.toLocaleString()} แต้มค่ะ`);}
+function openTechChatFromTeam(id){currentTechId=id;navigateToPage('technician-chat');selectTechChat(id);}
+
+// =========================
+// TECHNICIAN CHAT - 9 SEPARATE ROOMS
+// =========================
+function renderTechChatList(){const box=document.getElementById('techUserList');if(!box)return;box.innerHTML=TECHNICIANS_DATA.map(t=>`<div class="user-item ${t.id===currentTechId?'active':''}" onclick="selectTechChat('${t.id}')"><div class="user-item-head"><b>${esc(t.name)}</b><span class="tag">${esc(t.team)}</span></div><div class="muted" style="font-size:11px;">${esc(t.chat[t.chat.length-1]?.[1]||'ยังไม่มีข้อความ')}</div></div>`).join('');}
+function selectTechChat(id){currentTechId=id;const t=getTech(id);renderTechChatList();document.getElementById('activeTechTitle').textContent=`สนทนากับ: ${t.name} (${t.team})`;renderTechMessages();}
+function renderTechMessages(){const box=document.getElementById('techChatBox');const t=getTech(currentTechId);box.innerHTML=t.chat.map(m=>`<div class="chat-msg ${m[0]==='admin'?'me':'other'}">${esc(m[1])}</div>`).join('');box.scrollTop=box.scrollHeight;}
+function sendTechMsg(){const input=document.getElementById('techChatInput');const text=input.value.trim();if(!text)return;const t=getTech(currentTechId);t.chat.push(['admin',text]);input.value='';renderTechMessages();renderTechChatList();showToast(`ส่งข้อความถึง ${t.name} แล้วค่ะ`);}
+
+// =========================
+// ADMIN CLOCK STATUS
+// =========================
+function setWorkStatus(status){isWorking=status;const badge=document.getElementById('topStatusBadge');const text=document.getElementById('topStatusText');if(isWorking){badge.className='top-status-badge on';text.textContent='กำลังปฏิบัติงาน';showToast('แอดมินสมศรี บันทึกเวลาเข้าปฏิบัติงานเรียบร้อยแล้วค่ะ');}else{badge.className='top-status-badge off';text.textContent='นอกเวลาปฏิบัติงาน';showToast('แอดมินสมศรี บันทึกเวลาเลิกปฏิบัติงานเรียบร้อยแล้วค่ะ');}}
+
+// =========================
+// PRODUCT CATALOG
+// =========================
+function renderProducts(items){const container=document.getElementById('productGridContainer');if(!container)return;if(!items.length){container.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;background:#fff;border-radius:14px;border:1px solid var(--line);"><b>ไม่พบสินค้าตามเงื่อนไขตัวกรองค่ะ</b></div>';return;}container.innerHTML=items.map(p=>`<div class="product-card"><div><div class="product-badge-bar"><span class="product-brand">${p.brand.toUpperCase()}</span><span class="tag">${p.category}</span></div><div class="product-model">${p.model}</div><div style="margin-bottom:8px;display:flex;gap:4px;"><span class="tag ${p.type==='Inverter'?'':'orange'}">${p.type}</span>${p.hasPromo?'<span class="tag green">● มีโปรโมชั่น</span>':'<span class="tag gray">ไม่มีโปรโมชั่น</span>'}</div><div class="product-specs"><div><b>BTU:</b> ${p.btu.toLocaleString()}</div><div><b>ราคา:</b> ฿${p.price.toLocaleString()}</div></div></div><div class="product-price-bar"><span class="product-price">฿${p.price.toLocaleString()}</span><button class="btn secondary" style="font-size:12px;" onclick="viewProductDetail('${p.id}')">ดูรายละเอียด</button></div></div>`).join('');}
+function applyProductFilters(){const cat=document.getElementById('filterCategory').value,promo=document.getElementById('filterPromo').value,type=document.getElementById('filterType').value,btu=document.getElementById('filterBtu').value,price=document.getElementById('filterPrice').value,search=(document.getElementById('productSearch')?.value||'').trim().toLowerCase();renderProducts(PRODUCTS_DATA.filter(p=>{const searchable=[p.brand,p.model,p.category,p.type,String(p.btu)+' BTU'].join(' ').toLowerCase();return (cat==='ALL'||p.category===cat)&&(type==='ALL'||p.type===type)&&(btu==='ALL'||String(p.btu)===btu)&&(promo==='ALL'||(promo==='HAS_PROMO'?p.hasPromo:!p.hasPromo))&&(price==='ALL'||p.price<=Number(price))&&(!search||searchable.includes(search));}));}
+function clearProductFilters(){['filterCategory','filterPromo','filterType','filterBtu','filterPrice'].forEach(id=>document.getElementById(id).value='ALL');document.getElementById('productSearch').value='';renderProducts(PRODUCTS_DATA);showToast('ล้างตัวกรองทั้งหมดเรียบร้อยแล้วค่ะ');}
+function viewProductDetail(id){const p=PRODUCTS_DATA.find(x=>x.id===id);if(!p)return;openModal(`<h3>ข้อมูลสินค้า: ${p.brand} ${p.model}</h3><div class="list" style="margin-top:10px;"><div class="row"><span>ขนาด BTU</span><b>${p.btu.toLocaleString()} BTU</b></div><div class="row"><span>รูปแบบ</span><b>${p.category}</b></div><div class="row"><span>ระบบ</span><b>${p.type}</b></div><div class="row"><span>ราคา</span><b style="color:var(--blue);">฿${p.price.toLocaleString()}</b></div></div><button class="btn" style="margin-top:16px;width:100%;" onclick="closeModal()">ปิดหน้าต่าง</button>`);}
+</script>
+</body>
+</html>
