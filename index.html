@@ -227,6 +227,9 @@ tr:last-child td{border-bottom:none}
   .grid-4,.grid-3,.grid-2,.team-grid,.chat-layout,.product-grid{grid-template-columns:1fr}
 }
 </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
 </head>
 <body>
 
@@ -609,10 +612,19 @@ tr:last-child td{border-bottom:none}
 <div class="toast" id="toast"></div>
 
 <script>
+
+  const SUPABASE_URL = "https://yjgnodyfqwmvgivjzxmu.supabase.co/rest/v1/";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_enfKrob83I_zQcKhHRXeLQ_jvrKDFZP";
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+  
 // =========================
 // SHARED DATA MODEL
 // =========================
-const PRODUCTS_DATA = [
+let PRODUCTS_DATA = [
   { id: "P01", brand: "Daikin", model: "FTKF18XV2S", category: "ติดผนัง", type: "Inverter", btu: 18000, price: 23900, hasPromo: true },
   { id: "P02", brand: "Mitsubishi", model: "MSY-GY18VF", category: "ติดผนัง", type: "Inverter", btu: 18000, price: 24900, hasPromo: false },
   { id: "P03", brand: "Carrier", model: "42TVAB013", category: "ติดผนัง", type: "Inverter", btu: 12000, price: 18900, hasPromo: true },
@@ -620,6 +632,31 @@ const PRODUCTS_DATA = [
   { id: "P05", brand: "Daikin", model: "FTKF24WV2S", category: "ตั้งแขวน", type: "Inverter", btu: 24000, price: 31900, hasPromo: false },
   { id: "P06", brand: "Carrier", model: "42TVDA018", category: "สี่ทิศทาง", type: "Standard", btu: 18000, price: 21900, hasPromo: false }
 ];
+
+  async function loadProductsFromSupabase() {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("product_id");
+
+  if (error) {
+    console.error("โหลดสินค้าไม่สำเร็จ:", error);
+    return;
+  }
+
+  PRODUCTS_DATA = data.map(product => ({
+    id: product.product_id,
+    brand: product.brand,
+    model: product.model,
+    category: product.product_type || "",
+    type: product.technology || "",
+    btu: product.btu || 0,
+    price: Number(product.price || 0),
+    hasPromo: product.promotion === true
+  }));
+
+  renderProducts(PRODUCTS_DATA);
+}
 
 const BONUS_LIST = [
   { id: 1, title: "ส่วนลดชมภาพยนตร์ 200 บาท", pts: 500 },
@@ -699,6 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('currentDate').textContent = new Intl.DateTimeFormat('th-TH',{dateStyle:'full'}).format(new Date());
   document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>navigateToPage(btn.dataset.page)));
   renderProducts(PRODUCTS_DATA);
+  loadProductsFromSupabase();
   renderAllData();
   setTimeout(()=>selectCustomerChat('C01'),0);
   setTimeout(()=>selectTechChat('T01'),0);
