@@ -771,9 +771,90 @@ function renderHomeStats(){
   if(stats[2]) stats[2].textContent=`${active} รายการ`;
   if(stats[3]) stats[3].textContent=`${done} รายการ`;
 }
-function renderBookings(){
-  const body=document.getElementById('bookingTableBody'); if(!body)return;
-  body.innerHTML=JOBS_DATA.map(j=>{const c=getCustomer(j.customerId); return `<tr><td><b>${j.bookingId||'-'}</b><div class="muted" style="font-size:10px;margin-top:3px;">JOB: ${j.id}</div></td><td>${c.name}</td><td><span class="tag ${j.status==='done'?'green':j.status==='assigned'?'red':''}">${j.service}</span></td><td>${j.date} (${j.time})</td><td>${c.address}</td><td>${c.phone}</td><td><span class="tag ${j.status==='done'?'green':j.status==='assigned'?'red':'orange'}">${j.status==='done'?'เสร็จแล้ว':j.status==='assigned'?`${j.progress} (${j.team})`:`รอแจกงาน (${j.team})`}</span></td></tr>`}).join('');
+async function renderBookings(){
+  const body = document.getElementById('bookingTableBody');
+  if(!body) return;
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(`
+      booking_id,
+      customer_id,
+      source,
+      service_type,
+      booking_date,
+      booking_time,
+      address,
+      phone,
+      status,
+      users (
+        user_id,
+        full_name,
+        external_code
+      )
+    `)
+    .order('booking_date', { ascending: true })
+    .order('booking_time', { ascending: true });
+
+  if(error){
+    console.error('โหลดรายการการจองไม่สำเร็จ:', error);
+    body.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center;">
+          ไม่สามารถโหลดข้อมูลการจองได้
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  body.innerHTML = (data || []).map(b => {
+    const customer = b.users || {};
+
+    const customerName = customer.full_name || '-';
+    const customerCode = customer.external_code || `USER-${b.customer_id}`;
+    const customerPhone = b.phone || '-';
+
+    const date = b.booking_date
+      ? new Date(b.booking_date + 'T00:00:00').toLocaleDateString('th-TH')
+      : '-';
+
+    const statusText =
+      b.status === 'done' ? 'เสร็จแล้ว' :
+      b.status === 'assigned' ? 'แจกงานแล้ว' :
+      b.status === 'confirmed' ? 'ยืนยันแล้ว' :
+      b.status === 'cancelled' ? 'ยกเลิก' :
+      'รอดำเนินการ';
+
+    const statusClass =
+      b.status === 'done' ? 'green' :
+      b.status === 'assigned' ? 'red' :
+      b.status === 'cancelled' ? 'red' :
+      'orange';
+
+    return `
+      <tr>
+        <td>
+          <b>BK-${b.booking_id}</b>
+          <div class="muted" style="font-size:10px;margin-top:3px;">
+            ${customerCode}
+          </div>
+        </td>
+        <td>${customerName}</td>
+        <td>
+          <span class="tag">${b.service_type || '-'}</span>
+        </td>
+        <td>${date} (${b.booking_time || '-'})</td>
+        <td>${b.address || '-'}</td>
+        <td>${customerPhone}</td>
+        <td>
+          <span class="tag ${statusClass}">
+            ${statusText}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 function renderPendingJobs(){
   const box=document.getElementById('pendingJobList'); if(!box)return;
