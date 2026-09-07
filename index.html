@@ -616,7 +616,7 @@ tr:last-child td{border-bottom:none}
   const SUPABASE_URL = "https://yjgnodyfqwmvgivjzxmu.supabase.co/rest/v1/";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_enfKrob83I_zQcKhHRXeLQ_jvrKDFZP";
 
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
