@@ -894,11 +894,13 @@ async function loadJobsFromSupabase(){
     time: j.scheduled_time_slot || '-',
     team: j.assigned_tech_id ? getTeamFromTechId(j.assigned_tech_id) : '-',
     status: j.status || 'pending',
-    progress: j.status === 'done'
-      ? 'เสร็จแล้ว'
-      : j.assigned_tech_id
-        ? 'กำลังปฏิบัติงาน'
-        : ''
+   progress: j.status === 'done'
+  ? 'เสร็จแล้ว'
+  : j.status === 'assigned'
+    ? 'กำลังปฏิบัติงาน'
+    : j.assigned_tech_id
+      ? 'แจกงานแล้ว'
+      : ''
   }));
 
   renderPendingJobs();
@@ -908,14 +910,13 @@ async function loadJobsFromSupabase(){
 
 
 function getTeamFromTechId(techId){
-  const tech = TECHNICIANS_DATA.find(t =>
-    t.userId === techId ||
-    t.id === techId
-  );
+  const teamMap = {
+    11: 'ทีม A',
+    14: 'ทีม B',
+    17: 'ทีม C'
+  };
 
-  if(!tech) return '-';
-
-  return tech.team || tech.teamName || '-';
+  return teamMap[techId] || '-';
 }
 
 
