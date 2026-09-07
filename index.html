@@ -634,12 +634,30 @@ let PRODUCTS_DATA = [
 ];
 
   async function loadProductsFromSupabase() {
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .order("product_id");
+ const { data, error } = await supabaseClient
+  .from('bookings')
+  .select(`
+    booking_id,
+    customer_id,
+    source,
+    service_type,
+    booking_date,
+    booking_time,
+    address,
+    phone,
+    status,
+    users (
+      user_id,
+      full_name,
+      external_code
+    )
+  `)
+  .order('booking_date', { ascending: true })
+  .order('booking_time', { ascending: true });
 
-  if (error) {
+console.log("BOOKINGS FROM SUPABASE:", data);
+
+if(error){
     console.error("โหลดสินค้าไม่สำเร็จ:", error);
     return;
   }
