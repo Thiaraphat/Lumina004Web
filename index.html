@@ -695,7 +695,7 @@ const CUSTOMERS_DATA = [
   {id:'C10',name:'คุณดารินทร์',phone:'082-334-1122',address:'ถนนเลี่ยงเมือง อ.เมืองอุดรธานี',statusType:'NORMAL',lastService:'14 ก.พ. 2026 (ล้างประจำปี)',queue:'ยังไม่มีคิวใหม่ (แอร์ปกติ)',pinned:false,houses:[{name:'บ้านคุณดารินทร์',address:'ถนนเลี่ยงเมือง',airs:[{room:'ห้องรับแขก',product:'P05',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอนใหญ่',product:'P02',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องนอน 2',product:'P03',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'},{room:'ห้องทำงาน',product:'P04',status:'ปกติ',errorCode:'normal',arduino:'ดึงข้อมูลปกติ'}]}]}
 ];
 
-const JOBS_DATA = [
+let JOBS_DATA = [
   {id:'JOB-C-20260915-001',bookingId:'BKC-20260915-001',customerId:'C01',service:'ล้างแอร์ประจำปี',date:'วันนี้',time:'10:00',team:'ทีม A',status:'pending'},
   {id:'JOB-A-20260915-001',bookingId:'BKA-20260915-001',customerId:'C03',service:'ติดตั้งเครื่องใหม่',date:'พรุ่งนี้',time:'09:00',team:'ทีม A',status:'pending'},
   {id:'JOB-D-20260915-001',bookingId:'BKD-20260915-001',customerId:'C05',service:'เช็กน้ำยาแอร์',date:'พรุ่งนี้',time:'13:00',team:'ทีม B',status:'pending'},
@@ -738,6 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderProducts(PRODUCTS_DATA);
   loadProductsFromSupabase();
   renderAllData();
+  loadJobsFromSupabase();
   setTimeout(()=>selectCustomerChat('C01'),0);
   setTimeout(()=>selectTechChat('T01'),0);
 });
@@ -856,20 +857,228 @@ async function renderBookings(){
     `;
   }).join('');
 }
+async function loadJobsFromSupabase(){
+  const { data, error } = await supabase
+    .from('job_orders')
+    .select(`
+      job_id,
+      customer_id,
+      property_id,
+      assigned_tech_id,
+      service_type,
+      status,
+      scheduled_date,
+      scheduled_time_slot,
+      details,
+      booking_id,
+      job_code
+    `)
+    .order('scheduled_date', { ascending: true })
+    .order('scheduled_time_slot', { ascending: true });
+
+  if(error){
+    console.error('โหลด Job ไม่สำเร็จ:', error);
+    showToast('ไม่สามารถโหลดข้อมูลงานได้');
+    return;
+  }
+
+  JOBS_DATA = (data || []).map(j => ({
+    id: j.job_code || `JOB-${j.job_id}`,
+    dbId: j.job_id,
+    bookingId: j.booking_id ? `BK-${j.booking_id}` : '-',
+    customerId: j.customer_id,
+    propertyId: j.property_id,
+    assignedTechId: j.assigned_tech_id,
+    service: j.service_type,
+    date: j.scheduled_date || '-',
+    time: j.scheduled_time_slot || '-',
+    team: j.assigned_tech_id ? getTeamFromTechId(j.assigned_tech_id) : '-',
+    status: j.status || 'pending',
+    progress: j.status === 'done'
+      ? 'เสร็จแล้ว'
+      : j.assigned_tech_id
+        ? 'กำลังปฏิบัติงาน'
+        : ''
+  }));
+
+  renderPendingJobs();
+  renderAssignedJobs();
+  renderHomeStats();
+}
+
+
+function getTeamFromTechId(techId){
+  const tech = TECHNICIANS_DATA.find(t =>
+    t.userId === techId ||
+    t.id === techId
+  );
+
+  if(!tech) return '-';
+
+  return tech.team || tech.teamName || '-';
+}
+
+
 function renderPendingJobs(){
-  const box=document.getElementById('pendingJobList'); if(!box)return;
-  const pending=JOBS_DATA.filter(j=>j.status==='pending');
-  box.innerHTML=pending.map(j=>{const c=getCustomer(j.customerId);return `<div class="job-card" data-job-id="${j.id}"><div class="job-head"><div><b style="font-size:16px;">${j.id} — ${c.name}</b><div class="muted" style="margin-top:4px;">ประเภทงาน: <b>[${j.service}]</b> ${customerAirCount(c)} เครื่อง</div><div class="muted">นัดหมาย: ${j.date} เวลา ${j.time} น. | ที่อยู่: ${c.address}</div></div><span class="tag orange">สถานะ: รอแจกงาน</span></div><div class="job-actions"><button class="btn" onclick="assignJob('${j.id}','ทีม A')">แจกงานให้ ทีม A</button><button class="btn" onclick="assignJob('${j.id}','ทีม B')">แจกงานให้ ทีม B</button><button class="btn" onclick="assignJob('${j.id}','ทีม C')">แจกงานให้ ทีม C</button></div></div>`}).join('');
+  const box = document.getElementById('pendingJobList');
+  if(!box) return;
+
+  const pending = JOBS_DATA.filter(j =>
+    !j.assignedTechId &&
+    j.status !== 'done' &&
+    j.status !== 'cancelled'
+  );
+
+  box.innerHTML = pending.length
+    ? pending.map(j => {
+        const c = getCustomer(j.customerId);
+
+        return `
+          <div class="job-card" data-job-id="${j.id}">
+            <div class="job-head">
+              <div>
+                <b style="font-size:16px;">${j.id} — ${c.name}</b>
+
+                <div class="muted" style="margin-top:4px;">
+                  ประเภทงาน: <b>[${j.service}]</b>
+                  ${customerAirCount(c)} เครื่อง
+                </div>
+
+                <div class="muted">
+                  นัดหมาย: ${j.date} เวลา ${j.time} น.
+                  | ที่อยู่: ${c.address}
+                </div>
+              </div>
+
+              <span class="tag orange">
+                สถานะ: รอแจกงาน
+              </span>
+            </div>
+
+            <div class="job-actions">
+              <button class="btn" onclick="assignJob('${j.id}','ทีม A')">
+                แจกงานให้ ทีม A
+              </button>
+
+              <button class="btn" onclick="assignJob('${j.id}','ทีม B')">
+                แจกงานให้ ทีม B
+              </button>
+
+              <button class="btn" onclick="assignJob('${j.id}','ทีม C')">
+                แจกงานให้ ทีม C
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('')
+    : `
+      <div class="muted" style="text-align:center;padding:20px;">
+        ไม่มีงานที่รอแจก
+      </div>
+    `;
 }
+
+
 function renderAssignedJobs(){
-  const box=document.getElementById('assignedJobList'); if(!box)return;
-  box.innerHTML=JOBS_DATA.filter(j=>j.status!=='pending').map(j=>{const c=getCustomer(j.customerId);const cls=j.status==='done'?'green':'orange';return `<div class="job-card" style="border-left:4px solid var(--${cls});"><div class="job-head"><div><b style="font-size:16px;">${j.id} — ${c.name}</b><div class="muted" style="margin-top:2px;">ประเภทงาน: <b>[${j.service}]</b> | ทีมรับผิดชอบ: <b>${j.team}</b> | ${customerAirCount(c)} เครื่อง</div><div class="muted">สถานที่: ${c.address}</div></div><span class="tag ${cls}">${j.team}: ${j.progress}</span></div></div>`}).join('');
+  const box = document.getElementById('assignedJobList');
+  if(!box) return;
+
+  const assigned = JOBS_DATA.filter(j =>
+    j.assignedTechId &&
+    j.status !== 'cancelled'
+  );
+
+  box.innerHTML = assigned.length
+    ? assigned.map(j => {
+        const c = getCustomer(j.customerId);
+
+        const cls = j.status === 'done'
+          ? 'green'
+          : 'orange';
+
+        return `
+          <div class="job-card"
+               style="border-left:4px solid var(--${cls});">
+
+            <div class="job-head">
+
+              <div>
+                <b style="font-size:16px;">
+                  ${j.id} — ${c.name}
+                </b>
+
+                <div class="muted" style="margin-top:2px;">
+                  ประเภทงาน:
+                  <b>[${j.service}]</b>
+                  |
+                  ทีมรับผิดชอบ:
+                  <b>${j.team}</b>
+                  |
+                  ${customerAirCount(c)} เครื่อง
+                </div>
+
+                <div class="muted">
+                  สถานที่: ${c.address}
+                </div>
+              </div>
+
+              <span class="tag ${cls}">
+                ${j.team}: ${j.progress || 'แจกงานแล้ว'}
+              </span>
+
+            </div>
+
+          </div>
+        `;
+      }).join('')
+    : `
+      <div class="muted" style="text-align:center;padding:20px;">
+        ยังไม่มีงานที่แจกแล้ว
+      </div>
+    `;
 }
-function renderErrors(){
-  const body=document.getElementById('errorCodeTableBody'); if(!body)return;
-  body.innerHTML=ERROR_CODES_DATA.map(e=>{const c=getCustomer(e.customerId);return `<tr><td><b>${e.id}</b></td><td>${c.name} (${e.room})</td><td><span class="tag red">${e.code}</span></td><td>${e.detail}</td><td><span class="tag red">${e.team}</span><div class="muted" style="font-size:10px;margin-top:3px;">JOB: ${e.jobId}</div></td><td><button class="btn secondary" style="font-size:11px;" onclick="showToast('ติดตามคิวงาน ${e.team} เรียบร้อยค่ะ')">ติดตามคิว ${e.team}</button></td></tr>`}).join('');
+
+
+async function assignJob(jobId, team){
+
+  const job = JOBS_DATA.find(j => j.id === jobId);
+
+  if(!job){
+    showToast('ไม่พบข้อมูลงาน');
+    return;
+  }
+
+  const teamLeaders = {
+    'ทีม A': 11,
+    'ทีม B': 14,
+    'ทีม C': 17
+  };
+
+  const assignedTechId = teamLeaders[team];
+
+  if(!assignedTechId){
+    showToast('ไม่พบหัวหน้าทีม');
+    return;
+  }
+
+  const { error } = await supabase
+    .from('job_orders')
+    .update({
+      assigned_tech_id: assignedTechId,
+      status: 'assigned'
+    })
+    .eq('job_id', job.dbId);
+
+  if(error){
+    console.error('แจกงานไม่สำเร็จ:', error);
+    showToast('แจกงานไม่สำเร็จ');
+    return;
+  }
+
+  showToast(`มอบหมาย ${jobId} ให้ ${team} แล้วค่ะ`);
+
+  await loadJobsFromSupabase();
 }
-function assignJob(jobId,team){const job=JOBS_DATA.find(j=>j.id===jobId);if(!job)return;job.status='assigned';job.team=team;job.progress='กำลังปฏิบัติงาน';renderAllData();showToast(`มอบหมาย ${jobId} ให้ ${team} แล้วค่ะ`);}
 function openCreateBookingModal(){openModal(`<h3>สร้าง Booking ใหม่</h3><p class="muted">Demo นี้ใช้ข้อมูลลูกค้าชุดกลางเพื่อป้องกันข้อมูลข้ามคน</p><button class="btn" style="width:100%;margin-top:12px;" onclick="closeModal();showToast('เปิดแบบฟอร์ม Booking ใหม่แล้วค่ะ')">เริ่มสร้าง Booking</button>`);}
 function addPromo(){showToast('เปิดแบบฟอร์มเพิ่มโปรโมชั่นแล้วค่ะ');}
 function editPromo(){showToast('เปิดแบบฟอร์มแก้ไขโปรโมชั่นแล้วค่ะ');}
