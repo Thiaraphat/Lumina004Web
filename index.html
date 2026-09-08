@@ -740,7 +740,15 @@ let currentCustomerId = 'C01';
 let currentTechId = 'T01';
 let isWorking = false;
 
-function getCustomer(id){ return CUSTOMERS_DATA.find(c=>c.id===id); }
+function getCustomer(id){
+  const value = String(id);
+
+  return CUSTOMERS_DATA.find(c =>
+    String(c.id) === value ||
+    String(c.id).replace(/^C0?/, '') === value ||
+    String(c.id).replace(/^C/, '') === value
+  );
+}
 function getTech(id){ return TECHNICIANS_DATA.find(t=>t.id===id); }
 function customerAirCount(c){ return c.houses.reduce((sum,h)=>sum+h.airs.length,0); }
 function customerHouseCount(c){ return c.houses.length; }
@@ -828,11 +836,11 @@ async function renderBookings(){
   }
 
   body.innerHTML = (data || []).map(b => {
-    const customer = b.users || {};
+   const customer = getCustomer(b.customer_id) || {};
 
-    const customerName = customer.full_name || '-';
-    const customerCode = customer.external_code || `USER-${b.customer_id}`;
-    const customerPhone = b.phone || '-';
+const customerName = customer.name || customer.full_name || '-';
+const customerCode = customer.code || customer.external_code || `USER-${b.customer_id}`;
+const customerPhone = b.phone || customer.phone || '-';
 
     const date = b.booking_date
       ? new Date(b.booking_date + 'T00:00:00').toLocaleDateString('th-TH')
