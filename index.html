@@ -900,6 +900,8 @@ async function loadJobsFromSupabase(){
     return;
   }
 
+  console.log("JOBS FROM SUPABASE:", data);
+
   JOBS_DATA = (data || []).map(j => ({
     id: j.job_code || `JOB-${j.job_id}`,
     dbId: j.job_id,
