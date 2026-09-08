@@ -1248,7 +1248,88 @@ function setWorkStatus(status){isWorking=status;const badge=document.getElementB
 // =========================
 // PRODUCT CATALOG
 // =========================
-function renderProducts(items){const container=document.getElementById('productGridContainer');if(!container)return;if(!items.length){container.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;background:#fff;border-radius:14px;border:1px solid var(--line);"><b>ไม่พบสินค้าตามเงื่อนไขตัวกรองค่ะ</b></div>';return;}container.innerHTML=items.map(p=>`<div class="product-card"><div><div class="product-badge-bar"><span class="product-brand">${p.brand.toUpperCase()}</span><span class="tag">${p.category}</span></div><div class="product-model">${p.model}</div><div style="margin-bottom:8px;display:flex;gap:4px;"><span class="tag ${p.type==='Inverter'?'':'orange'}">${p.type}</span>${p.hasPromo?'<span class="tag green">● มีโปรโมชั่น</span>':'<span class="tag gray">ไม่มีโปรโมชั่น</span>'}</div><div class="product-specs"><div><b>BTU:</b> ${p.btu.toLocaleString()}</div><div><b>ราคา:</b> ฿${p.price.toLocaleString()}</div></div></div><div class="product-price-bar"><span class="product-price">฿${p.price.toLocaleString()}</span><button class="btn secondary" style="font-size:12px;" onclick="viewProductDetail('${p.id}')">ดูรายละเอียด</button></div></div>`).join('');}
+function renderProducts(items){
+  const container = document.getElementById('productGridContainer');
+  if(!container) return;
+
+  if(!items || !items.length){
+    container.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px;background:#fff;border-radius:14px;border:1px solid var(--line);">
+        <b>ไม่พบสินค้าตามเงื่อนไขตัวกรองค่ะ</b>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map(p => {
+
+    const brand = p.brand || '-';
+    const model = p.model || '-';
+    const category = p.category || '-';
+    const type = p.type || '-';
+    const btu = Number(p.btu) || 0;
+    const price = Number(p.price) || 0;
+    const hasPromo = Boolean(p.hasPromo);
+
+    return `
+      <div class="product-card">
+
+        <div>
+          <div class="product-badge-bar">
+            <span class="product-brand">
+              ${String(brand).toUpperCase()}
+            </span>
+
+            <span class="tag">
+              ${category}
+            </span>
+          </div>
+
+          <div class="product-model">
+            ${model}
+          </div>
+
+          <div style="margin-bottom:8px;display:flex;gap:4px;">
+            <span class="tag ${type === 'Inverter' ? '' : 'orange'}">
+              ${type}
+            </span>
+
+            ${
+              hasPromo
+                ? '<span class="tag green">● มีโปรโมชั่น</span>'
+                : '<span class="tag gray">ไม่มีโปรโมชั่น</span>'
+            }
+          </div>
+
+          <div class="product-specs">
+            <div>
+              <b>BTU:</b> ${btu.toLocaleString()}
+            </div>
+
+            <div>
+              <b>ราคา:</b> ฿${price.toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        <div class="product-price-bar">
+          <span class="product-price">
+            ฿${price.toLocaleString()}
+          </span>
+
+          <button
+            class="btn secondary"
+            style="font-size:12px;"
+            onclick="viewProductDetail('${p.id}')"
+          >
+            ดูรายละเอียด
+          </button>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+}
 function applyProductFilters(){const cat=document.getElementById('filterCategory').value,promo=document.getElementById('filterPromo').value,type=document.getElementById('filterType').value,btu=document.getElementById('filterBtu').value,price=document.getElementById('filterPrice').value,search=(document.getElementById('productSearch')?.value||'').trim().toLowerCase();renderProducts(PRODUCTS_DATA.filter(p=>{const searchable=[p.brand,p.model,p.category,p.type,String(p.btu)+' BTU'].join(' ').toLowerCase();return (cat==='ALL'||p.category===cat)&&(type==='ALL'||p.type===type)&&(btu==='ALL'||String(p.btu)===btu)&&(promo==='ALL'||(promo==='HAS_PROMO'?p.hasPromo:!p.hasPromo))&&(price==='ALL'||p.price<=Number(price))&&(!search||searchable.includes(search));}));}
 function clearProductFilters(){['filterCategory','filterPromo','filterType','filterBtu','filterPrice'].forEach(id=>document.getElementById(id).value='ALL');document.getElementById('productSearch').value='';renderProducts(PRODUCTS_DATA);showToast('ล้างตัวกรองทั้งหมดเรียบร้อยแล้วค่ะ');}
 function viewProductDetail(id){const p=PRODUCTS_DATA.find(x=>x.id===id);if(!p)return;openModal(`<h3>ข้อมูลสินค้า: ${p.brand} ${p.model}</h3><div class="list" style="margin-top:10px;"><div class="row"><span>ขนาด BTU</span><b>${p.btu.toLocaleString()} BTU</b></div><div class="row"><span>รูปแบบ</span><b>${p.category}</b></div><div class="row"><span>ระบบ</span><b>${p.type}</b></div><div class="row"><span>ราคา</span><b style="color:var(--blue);">฿${p.price.toLocaleString()}</b></div></div><button class="btn" style="margin-top:16px;width:100%;" onclick="closeModal()">ปิดหน้าต่าง</button>`);}
