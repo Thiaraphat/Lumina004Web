@@ -1101,7 +1101,7 @@ async function assignJob(jobId, team){
     return;
   }
 
-  const { error } = await supabase
+ const { error } = await supabaseClient
     .from('job_orders')
     .update({
       assigned_tech_id: assignedTechId,
