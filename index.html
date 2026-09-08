@@ -837,10 +837,10 @@ async function renderBookings(){
   }
 
   body.innerHTML = (data || []).map(b => {
-   const customer = getCustomer(b.customer_id) || {};
+  const customer = getCustomer(b.customer_id) || {};
 
-const customerName = customer.name || customer.full_name || '-';
-const customerCode = customer.code || customer.external_code || `USER-${b.customer_id}`;
+const customerName = customer.name || '-';
+const customerCode = customer.id || `USER-${b.customer_id}`;
 const customerPhone = b.phone || customer.phone || '-';
 
     const date = b.booking_date
@@ -961,22 +961,29 @@ function renderPendingJobs(){
 
   box.innerHTML = pending.length
     ? pending.map(j => {
-        const c = getCustomer(j.customerId);
+        const c = getCustomer(j.customerId) || {};
+
+        const customerName = c.name || `ลูกค้า USER-${j.customerId}`;
+        const customerAddress = c.address || '-';
 
         return `
           <div class="job-card" data-job-id="${j.id}">
             <div class="job-head">
               <div>
-                <b style="font-size:16px;">${j.id} — ${c.name}</b>
+                <b style="font-size:16px;">
+                  ${j.id} — ${customerName}
+                </b>
 
                 <div class="muted" style="margin-top:4px;">
-                  ประเภทงาน: <b>[${j.service}]</b>
+                  ประเภทงาน:
+                  <b>[${j.service || '-'}]</b>
                   ${customerAirCount(c)} เครื่อง
                 </div>
 
                 <div class="muted">
-                  นัดหมาย: ${j.date} เวลา ${j.time} น.
-                  | ที่อยู่: ${c.address}
+                  นัดหมาย: ${j.date || '-'}
+                  เวลา ${j.time || '-'} น.
+                  | ที่อยู่: ${customerAddress}
                 </div>
               </div>
 
@@ -1020,7 +1027,10 @@ function renderAssignedJobs(){
 
   box.innerHTML = assigned.length
     ? assigned.map(j => {
-        const c = getCustomer(j.customerId);
+        const c = getCustomer(j.customerId) || {};
+
+        const customerName = c.name || `ลูกค้า USER-${j.customerId}`;
+        const customerAddress = c.address || '-';
 
         const cls = j.status === 'done'
           ? 'green'
@@ -1034,26 +1044,26 @@ function renderAssignedJobs(){
 
               <div>
                 <b style="font-size:16px;">
-                  ${j.id} — ${c.name}
+                  ${j.id} — ${customerName}
                 </b>
 
                 <div class="muted" style="margin-top:2px;">
                   ประเภทงาน:
-                  <b>[${j.service}]</b>
+                  <b>[${j.service || '-'}]</b>
                   |
                   ทีมรับผิดชอบ:
-                  <b>${j.team}</b>
+                  <b>${j.team || '-'}</b>
                   |
                   ${customerAirCount(c)} เครื่อง
                 </div>
 
                 <div class="muted">
-                  สถานที่: ${c.address}
+                  สถานที่: ${customerAddress}
                 </div>
               </div>
 
               <span class="tag ${cls}">
-                ${j.team}: ${j.progress || 'แจกงานแล้ว'}
+                ${j.team || '-'}: ${j.progress || 'แจกงานแล้ว'}
               </span>
 
             </div>
