@@ -1333,6 +1333,163 @@ function renderProducts(items){
 function applyProductFilters(){const cat=document.getElementById('filterCategory').value,promo=document.getElementById('filterPromo').value,type=document.getElementById('filterType').value,btu=document.getElementById('filterBtu').value,price=document.getElementById('filterPrice').value,search=(document.getElementById('productSearch')?.value||'').trim().toLowerCase();renderProducts(PRODUCTS_DATA.filter(p=>{const searchable=[p.brand,p.model,p.category,p.type,String(p.btu)+' BTU'].join(' ').toLowerCase();return (cat==='ALL'||p.category===cat)&&(type==='ALL'||p.type===type)&&(btu==='ALL'||String(p.btu)===btu)&&(promo==='ALL'||(promo==='HAS_PROMO'?p.hasPromo:!p.hasPromo))&&(price==='ALL'||p.price<=Number(price))&&(!search||searchable.includes(search));}));}
 function clearProductFilters(){['filterCategory','filterPromo','filterType','filterBtu','filterPrice'].forEach(id=>document.getElementById(id).value='ALL');document.getElementById('productSearch').value='';renderProducts(PRODUCTS_DATA);showToast('ล้างตัวกรองทั้งหมดเรียบร้อยแล้วค่ะ');}
 function viewProductDetail(id){const p=PRODUCTS_DATA.find(x=>x.id===id);if(!p)return;openModal(`<h3>ข้อมูลสินค้า: ${p.brand} ${p.model}</h3><div class="list" style="margin-top:10px;"><div class="row"><span>ขนาด BTU</span><b>${p.btu.toLocaleString()} BTU</b></div><div class="row"><span>รูปแบบ</span><b>${p.category}</b></div><div class="row"><span>ระบบ</span><b>${p.type}</b></div><div class="row"><span>ราคา</span><b style="color:var(--blue);">฿${p.price.toLocaleString()}</b></div></div><button class="btn" style="margin-top:16px;width:100%;" onclick="closeModal()">ปิดหน้าต่าง</button>`);}
+ async function renderErrorCodes(){
+  const body = document.getElementById('errorCodeTableBody');
+  if(!body) return;
+
+  const { data, error } = await supabaseClient
+    .from('error_reports')
+    .select(`
+      error_id,
+      customer_id,
+      property_id,
+      ac_id,
+      error_code,
+      error_detail,
+      status,
+      job_id,
+      created_at,
+      updated_at
+    `)
+    .order('created_at', { ascending: false });
+
+  if(error){
+    console.error('โหลด Error Code ไม่สำเร็จ:', error);
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center;">
+          ไม่สามารถโหลดข้อมูล Error Code ได้
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  body.innerHTML = (data || []).map(e => {
+
+    const customer = getCustomer(e.customer_id);
+
+    const customerName = customer
+      ? customer.name
+      : `ลูกค้า C${String(e.customer_id).padStart(2,'0')}`;
+
+    const customerCode = customer
+      ? customer.id
+      : `C${String(e.customer_id).padStart(2,'0')}`;
+
+    const detail = e.error_detail || '-';
+
+    const statusText =
+      e.status === 'pending' ? 'รอดำเนินการ' :
+      e.status === 'assigned' ? 'แจกงานแล้ว' :
+      e.status === 'in_progress' ? 'กำลังซ่อม' :
+      e.status === 'done' ? 'ซ่อมเสร็จแล้ว' :
+      e.status === 'cancelled' ? 'ยกเลิก' :
+      e.status || '-';
+
+    const statusClass =
+      e.status === 'done' ? 'green' :
+      e.status === 'cancelled' ? 'red' :
+      e.status === 'in_progress' || e.status === 'assigned'
+        ? 'orange'
+        : 'red';
+
+    return `
+      <tr>
+
+        <td>
+          <b>ERR-${e.error_id}</b>
+        </td>
+
+        <td>
+          <b>${customerCode} — ${customerName}</b>
+          <div class="muted" style="font-size:11px;margin-top:3px;">
+            AC-${e.ac_id || '-'}
+            | บ้าน/ทรัพย์สิน ${e.property_id || '-'}
+          </div>
+        </td>
+
+        <td>
+          <span class="tag red">
+            ${e.error_code || '-'}
+          </span>
+        </td>
+
+        <td>
+          ${detail}
+        </td>
+
+        <td>
+          <span class="tag ${statusClass}">
+            ${statusText}
+          </span>
+        </td>
+
+        <td>
+          ${
+            e.status === 'pending'
+              ? `
+                <button
+                  class="btn"
+                  style="font-size:12px;"
+                  onclick="viewErrorDetail(${e.error_id})"
+                >
+                  ดูรายละเอียด
+                </button>
+              `
+              : `
+                <button
+                  class="btn secondary"
+                  style="font-size:12px;"
+                  onclick="viewErrorDetail(${e.error_id})"
+                >
+                  ดูรายละเอียด
+                </button>
+              `
+          }
+        </td>
+
+      </tr>
+    `;
+  }).join('');
+}
+
+
+function viewErrorDetail(errorId){
+  const body = document.getElementById('errorCodeTableBody');
+  if(!body) return;
+
+  const row = body.querySelector(`tr[data-error-id="${errorId}"]`);
+
+  openModal(`
+    <h3>รายละเอียด Error Code</h3>
+    <div class="list" style="margin-top:10px;">
+      <div class="row">
+        <span>Error Code ID</span>
+        <b>ERR-${errorId}</b>
+      </div>
+
+      <div class="row">
+        <span>รหัส Error</span>
+        <b>U4</b>
+      </div>
+
+      <div class="row">
+        <span>สถานะ</span>
+        <b>รอดำเนินการ</b>
+      </div>
+    </div>
+
+    <button
+      class="btn"
+      style="margin-top:16px;width:100%;"
+      onclick="closeModal()"
+    >
+      ปิดหน้าต่าง
+    </button>
+  `);
+} 
 </script>
 </body>
 </html>
