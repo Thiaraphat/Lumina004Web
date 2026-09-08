@@ -765,6 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadProductsFromSupabase();
   renderAllData();
   loadJobsFromSupabase();
+  renderErrorCodes();
   setTimeout(()=>selectCustomerChat('C01'),0);
   setTimeout(()=>selectTechChat('T01'),0);
 });
