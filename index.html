@@ -894,6 +894,7 @@ async function loadJobsFromSupabase(){
       assigned_tech_id,
       service_type,
       status,
+      progress,
       scheduled_date,
       scheduled_time_slot,
       details,
@@ -909,9 +910,7 @@ async function loadJobsFromSupabase(){
     return;
   }
 
-  console.log("JOBS FROM SUPABASE:", data);
-
-  JOBS_DATA = (data || []).map(j => ({
+   JOBS_DATA = (data || []).map(j => ({
     id: j.job_code || `JOB-${j.job_id}`,
     dbId: j.job_id,
     bookingId: j.booking_id ? `BK-${j.booking_id}` : '-',
@@ -923,20 +922,13 @@ async function loadJobsFromSupabase(){
     time: j.scheduled_time_slot || '-',
     team: j.assigned_tech_id ? getTeamFromTechId(j.assigned_tech_id) : '-',
     status: j.status || 'pending',
-   progress: j.status === 'done'
-  ? 'เสร็จแล้ว'
-  : j.status === 'assigned'
-    ? 'กำลังปฏิบัติงาน'
-    : j.assigned_tech_id
-      ? 'แจกงานแล้ว'
-      : ''
+    progress: Number(j.progress) || 0
   }));
 
   renderPendingJobs();
   renderAssignedJobs();
   renderHomeStats();
 }
-
 
 function getTeamFromTechId(techId){
   const teamMap = {
@@ -1027,14 +1019,46 @@ function renderAssignedJobs(){
 
   box.innerHTML = assigned.length
     ? assigned.map(j => {
+
         const c = getCustomer(j.customerId) || {};
 
-        const customerName = c.name || `ลูกค้า USER-${j.customerId}`;
-        const customerAddress = c.address || '-';
+        const customerName =
+          c.name || `ลูกค้า USER-${j.customerId}`;
 
-        const cls = j.status === 'done'
-          ? 'green'
-          : 'orange';
+        const customerAddress =
+          c.address || '-';
+
+        const progress =
+          Number(j.progress) || 0;
+
+        let statusText = 'แจกงานแล้ว';
+        let cls = 'orange';
+
+        if(j.status === 'done' || progress >= 100){
+
+          statusText = 'งานเสร็จสิ้น';
+          cls = 'green';
+
+        } else if(j.status === 'in_progress'){
+
+          if(progress >= 75){
+
+            statusText = 'กำลังดำเนินงาน';
+            cls = 'orange';
+
+          } else if(progress >= 50){
+
+            statusText = 'ถึงหน้างานแล้ว';
+            cls = 'orange';
+
+          } else if(progress >= 25){
+
+            statusText = 'กำลังไป';
+            cls = 'orange';
+
+          }
+
+        }
 
         return `
           <div class="job-card"
@@ -1043,11 +1067,13 @@ function renderAssignedJobs(){
             <div class="job-head">
 
               <div>
+
                 <b style="font-size:16px;">
                   ${j.id} — ${customerName}
                 </b>
 
                 <div class="muted" style="margin-top:2px;">
+
                   ประเภทงาน:
                   <b>[${j.service || '-'}]</b>
                   |
@@ -1055,29 +1081,32 @@ function renderAssignedJobs(){
                   <b>${j.team || '-'}</b>
                   |
                   ${customerAirCount(c)} เครื่อง
+
                 </div>
 
                 <div class="muted">
                   สถานที่: ${customerAddress}
                 </div>
+
               </div>
 
               <span class="tag ${cls}">
-                ${j.team || '-'}: ${j.progress || 'แจกงานแล้ว'}
+                ${j.team || '-'}: ${statusText}
               </span>
 
             </div>
 
           </div>
         `;
+
       }).join('')
+
     : `
       <div class="muted" style="text-align:center;padding:20px;">
         ยังไม่มีงานที่แจกแล้ว
       </div>
     `;
 }
-
 
 async function assignJob(jobId, team){
 
