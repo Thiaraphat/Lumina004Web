@@ -1132,10 +1132,11 @@ async function assignJob(jobId, team){
 
  const { error } = await supabaseClient
     .from('job_orders')
-    .update({
-      assigned_tech_id: assignedTechId,
-      status: 'assigned'
-    })
+   .update({
+  assigned_tech_id: assignedTechId,
+  status: 'assigned',
+  progress: 0
+})
     .eq('job_id', job.dbId);
 
   if(error){
