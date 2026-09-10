@@ -2691,5 +2691,143 @@ function viewErrorDetail(errorId){
 })();
 
 </script>
+
+<script>
+/* LUMINA BOOKING HOTFIX — authoritative DB booking flow */
+(function(){
+  window.saveExistingCustomerBooking = async function(customerId, propertyId){
+    const selectedACs = Array.from(document.querySelectorAll('input[name="bookingAirConditioner"]:checked')).map(x=>Number(x.value)).filter(Boolean);
+    const serviceType = document.getElementById('bookingServiceType')?.value?.trim();
+    const bookingDate = document.getElementById('bookingDate')?.value?.trim();
+    const bookingTime = document.getElementById('bookingTime')?.value?.trim();
+
+    if(!serviceType){ showToast('กรุณาเลือกประเภทบริการ'); return; }
+    if(!bookingDate){ showToast('กรุณาเลือกวันที่นัดหมาย'); return; }
+    if(!bookingTime){ showToast('กรุณาเลือกเวลานัดหมาย'); return; }
+    if(!selectedACs.length){ showToast('กรุณาเลือกเครื่องปรับอากาศอย่างน้อย 1 เครื่อง'); return; }
+
+    const {data: customer, error: customerError} = await supabaseClient
+      .from('users')
+      .select('user_id,external_code,full_name')
+      .eq('user_id', customerId)
+      .maybeSingle();
+
+    if(customerError || !customer){
+      console.error('โหลดลูกค้าสำหรับ Booking ไม่สำเร็จ:', customerError);
+      showToast('ไม่สามารถโหลดข้อมูลลูกค้าได้');
+      return;
+    }
+
+    const customerCode = String(customer.external_code || `C${String(customerId).padStart(2,'0')}`);
+    /* รูปแบบสุดท้าย: BKC-20260915-001 (ใช้ C เป็นรหัสประเภทลูกค้า ไม่ซ้ำ C01 ในเลข Booking) */
+    const bookingPrefix = `BK${customerCode.startsWith('C') ? 'C' : customerCode}-${bookingDate.replaceAll('-','')}-`;
+
+    const {data: existingBookings, error: listError} = await supabaseClient
+      .from('bookings')
+      .select('booking_code')
+      .like('booking_code', `${bookingPrefix}%`);
+
+    if(listError){
+      console.error('ตรวจสอบเลข Booking ไม่สำเร็จ:', listError);
+      showToast('ไม่สามารถตรวจสอบเลขคิว Booking ได้');
+      return;
+    }
+
+    const queueNumber = (existingBookings || [])
+      .map(x => Number(String(x.booking_code || '').match(/-(\d+)$/)?.[1] || 0))
+      .reduce((max,n)=>Math.max(max,n),0) + 1;
+    const queueCode = String(queueNumber).padStart(3,'0');
+    const bookingCode = `${bookingPrefix}${queueCode}`;
+
+    const {data: booking, error: bookingError} = await supabaseClient
+      .from('bookings')
+      .insert({
+        booking_code: bookingCode,
+        customer_id: customer.user_id,
+        property_id: Number(propertyId),
+        service_type: serviceType,
+        scheduled_date: bookingDate,
+        scheduled_time: bookingTime,
+        status: 'confirmed'
+      })
+      .select('booking_id,booking_code')
+      .single();
+
+    if(bookingError){
+      console.error('สร้าง Booking ใน Supabase ไม่สำเร็จ:', bookingError);
+      showToast('สร้าง Booking ไม่สำเร็จ — ตรวจสิทธิ์ INSERT ของตาราง bookings');
+      return;
+    }
+
+    const {error: jobError} = await supabaseClient
+      .from('job_orders')
+      .insert({
+        booking_id: booking.booking_id,
+        customer_id: customer.user_id,
+        property_id: Number(propertyId),
+        service_type: serviceType,
+        scheduled_date: bookingDate,
+        scheduled_time_slot: bookingTime,
+        details: JSON.stringify({air_conditioner_ids:selectedACs, service_type:serviceType}),
+        status: 'pending',
+        progress: 0,
+        job_code: `JOB-${customerCode}-${bookingDate.replaceAll('-','')}-${queueCode}`
+      });
+
+    if(jobError){
+      console.error('สร้าง Job ใน Supabase ไม่สำเร็จ:', jobError);
+      showToast(`สร้าง Booking ${bookingCode} แล้ว แต่สร้าง Job ไม่สำเร็จ`);
+      return;
+    }
+
+    showToast(`สร้าง Booking ${bookingCode} เรียบร้อยแล้วค่ะ`);
+    closeModal();
+    await loadJobsFromSupabase();
+    if(typeof renderBookings === 'function') await renderBookings();
+  };
+
+  /* ทำให้ตารางรายการจองอ่านจาก schema เดียวกับฟังก์ชันสร้าง Booking */
+  window.renderBookings = async function(){
+    const body=document.getElementById('bookingTableBody');
+    if(!body)return;
+
+    const {data,error}=await supabaseClient
+      .from('bookings')
+      .select('booking_id,booking_code,customer_id,property_id,service_type,scheduled_date,scheduled_time,status')
+      .order('scheduled_date',{ascending:true})
+      .order('scheduled_time',{ascending:true});
+
+    if(error){
+      console.error('โหลดรายการ Booking ไม่สำเร็จ:',error);
+      body.innerHTML='<tr><td colspan="7" style="text-align:center;">ไม่สามารถโหลดรายการจองจากฐานข้อมูลได้</td></tr>';
+      return;
+    }
+
+    body.innerHTML=(data||[]).map(b=>{
+      const c=(typeof getCustomerByDbId==='function') ? getCustomerByDbId(b.customer_id) : getCustomer(`C${String(b.customer_id).padStart(2,'0')}`);
+      const name=c?.name || `ลูกค้า C${String(b.customer_id).padStart(2,'0')}`;
+      const phone=c?.phone || '-';
+      const address=c?.address || '-';
+      const statusText=b.status==='confirmed'?'ยืนยันแล้ว':b.status==='assigned'?'แจกงานแล้ว':b.status==='done'?'เสร็จแล้ว':b.status==='cancelled'?'ยกเลิก':'รอดำเนินการ';
+      const cls=b.status==='done'?'green':b.status==='cancelled'?'red':b.status==='assigned'?'orange':'orange';
+      return `<tr>
+        <td><b>${esc2(b.booking_code || `BK-${b.booking_id}`)}</b></td>
+        <td>${esc2(name)}</td>
+        <td><span class="tag">${esc2(b.service_type||'-')}</span></td>
+        <td>${esc2(b.scheduled_date||'-')} (${esc2(b.scheduled_time||'-')})</td>
+        <td>${esc2(address)}</td>
+        <td>${esc2(phone)}</td>
+        <td><span class="tag ${cls}">${statusText}</span></td>
+      </tr>`;
+    }).join('');
+  };
+
+  /* local fallback เดิมจะไม่สร้าง Booking ปลอมอีก */
+  window.saveLocalBooking = async function(){
+    showToast('กรุณาเลือกข้อมูลลูกค้าที่มาจากฐานข้อมูลเพื่อสร้าง Booking จริงค่ะ');
+  };
+})();
+</script>
+
 </body>
 </html>
