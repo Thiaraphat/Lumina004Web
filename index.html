@@ -2929,3 +2929,138 @@ function viewErrorDetail(errorId){
 
 </body>
 </html>
+
+<!-- LUMINA PROMOTION FIX v1: make + เพิ่มโปรโมชั่น open a real form and work -->
+<script>
+(function(){
+  const PROMO_STORAGE_KEY = 'lumina_admin_promotions_v1';
+
+  function escPromo(v){
+    return String(v ?? '').replace(/[&<>'"]/g, function(ch){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch];
+    });
+  }
+
+  function getSavedPromos(){
+    try{
+      const raw = localStorage.getItem(PROMO_STORAGE_KEY);
+      const data = raw ? JSON.parse(raw) : [];
+      return Array.isArray(data) ? data : [];
+    }catch(e){ return []; }
+  }
+
+  function setSavedPromos(data){
+    try{ localStorage.setItem(PROMO_STORAGE_KEY, JSON.stringify(data)); }catch(e){}
+  }
+
+  function renderSavedPromos(){
+    const box = document.getElementById('promoContainer');
+    if(!box) return;
+    box.querySelectorAll('.lumina-saved-promo').forEach(el => el.remove());
+    const data = getSavedPromos();
+    const baseCount = box.querySelectorAll('.row').length;
+    data.forEach((p, idx) => {
+      const number = baseCount + idx + 1;
+      box.insertAdjacentHTML('beforeend', `
+        <div class="row lumina-saved-promo" data-promo-id="${escPromo(p.id)}">
+          <div>
+            <b style="color:var(--deep);font-size:15px;">${number}. ${escPromo(p.title)}</b>
+            <div style="font-size:13px;margin-top:4px;line-height:1.5;">${escPromo(p.detail)}</div>
+          </div>
+          <div style="min-width:130px;text-align:right;">
+            <button class="btn secondary" onclick="editPromo(this)">แก้ไข</button>
+            <button class="btn danger" onclick="deletePromo(this)">ลบ</button>
+          </div>
+        </div>`);
+    });
+  }
+
+  window.addPromo = function(){
+    openModal(`
+      <h3>เพิ่มโปรโมชั่น</h3>
+      <div style="margin-top:14px;">
+        <label class="muted">ชื่อโปรโมชั่น</label>
+        <input id="promoTitleInput" class="input" style="width:100%;margin-top:6px;padding:10px;border:1px solid var(--line);border-radius:10px;box-sizing:border-box;" placeholder="เช่น โปรโมชั่นล้างแอร์ราคาพิเศษ">
+      </div>
+      <div style="margin-top:12px;">
+        <label class="muted">รายละเอียดโปรโมชั่น</label>
+        <textarea id="promoDetailInput" class="input" style="width:100%;margin-top:6px;min-height:110px;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box;" placeholder="รายละเอียด เงื่อนไข หรือส่วนลด"></textarea>
+      </div>
+      <button class="btn" style="width:100%;margin-top:16px;" onclick="savePromo()">บันทึกโปรโมชั่น</button>
+    `);
+    setTimeout(()=>document.getElementById('promoTitleInput')?.focus(),50);
+  };
+
+  window.savePromo = function(){
+    const title = (document.getElementById('promoTitleInput')?.value || '').trim();
+    const detail = (document.getElementById('promoDetailInput')?.value || '').trim();
+    if(!title || !detail){
+      showToast('กรุณากรอกชื่อและรายละเอียดโปรโมชั่นค่ะ');
+      return;
+    }
+    const data = getSavedPromos();
+    data.push({id:'PROMO-'+Date.now(), title, detail});
+    setSavedPromos(data);
+    renderSavedPromos();
+    closeModal();
+    showToast('เพิ่มโปรโมชั่นเรียบร้อยแล้วค่ะ');
+  };
+
+  window.editPromo = function(btn){
+    const row = btn?.closest('.row');
+    if(!row) return;
+    const id = row.getAttribute('data-promo-id');
+    if(!id){
+      showToast('โปรโมชั่นเดิมของระบบสามารถแก้ไขได้ภายหลังค่ะ');
+      return;
+    }
+    const data = getSavedPromos();
+    const promo = data.find(p => p.id === id);
+    if(!promo) return;
+    openModal(`
+      <h3>แก้ไขโปรโมชั่น</h3>
+      <div style="margin-top:14px;">
+        <label class="muted">ชื่อโปรโมชั่น</label>
+        <input id="promoEditTitle" class="input" value="${escPromo(promo.title)}" style="width:100%;margin-top:6px;padding:10px;border:1px solid var(--line);border-radius:10px;box-sizing:border-box;">
+      </div>
+      <div style="margin-top:12px;">
+        <label class="muted">รายละเอียดโปรโมชั่น</label>
+        <textarea id="promoEditDetail" class="input" style="width:100%;margin-top:6px;min-height:110px;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box;">${escPromo(promo.detail)}</textarea>
+      </div>
+      <button class="btn" style="width:100%;margin-top:16px;" onclick="saveEditedPromo('${escPromo(id)}')">บันทึกการแก้ไข</button>
+    `);
+  };
+
+  window.saveEditedPromo = function(id){
+    const title = (document.getElementById('promoEditTitle')?.value || '').trim();
+    const detail = (document.getElementById('promoEditDetail')?.value || '').trim();
+    if(!title || !detail){ showToast('กรุณากรอกข้อมูลให้ครบค่ะ'); return; }
+    const data = getSavedPromos();
+    const promo = data.find(p => p.id === id);
+    if(!promo) return;
+    promo.title = title;
+    promo.detail = detail;
+    setSavedPromos(data);
+    renderSavedPromos();
+    closeModal();
+    showToast('แก้ไขโปรโมชั่นเรียบร้อยแล้วค่ะ');
+  };
+
+  window.deletePromo = function(btn){
+    const row = btn?.closest('.row');
+    if(!row) return;
+    const id = row.getAttribute('data-promo-id');
+    if(!id){
+      showToast('โปรโมชั่นเดิมของระบบยังไม่ได้เปิดการลบค่ะ');
+      return;
+    }
+    if(!confirm('ยืนยันการลบโปรโมชั่นนี้?')) return;
+    setSavedPromos(getSavedPromos().filter(p => p.id !== id));
+    renderSavedPromos();
+    showToast('ลบโปรโมชั่นเรียบร้อยแล้วค่ะ');
+  };
+
+  document.addEventListener('DOMContentLoaded', renderSavedPromos);
+  if(document.readyState !== 'loading') renderSavedPromos();
+})();
+</script>
