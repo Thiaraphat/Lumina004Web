@@ -1322,7 +1322,7 @@ function showExistingCustomerBooking(){
       phone,
       address
     `)
-    .eq('user_id', customerId)
+.eq('external_code', String(customerId))
     .maybeSingle();
 
   if(customerError || !customer){
