@@ -2664,7 +2664,7 @@ window.esc2=esc2;
     const k=input.value.trim();if(!k){box.innerHTML='<div class="muted">พิมพ์ชื่อ เบอร์โทร หรือรหัสลูกค้าเพื่อค้นหา</div>';return;}
     box.innerHTML='<div class="muted">กำลังค้นหาลูกค้าจากฐานข้อมูล...</div>';
     const safe=k.replace(/[%_,]/g,'');
-    const r=await supabaseClient.from('users').select('user_id,external_code,full_name,phone,address').or(`full_name.ilike.%${safe}%,external_code.ilike.%${safe}%`).limit(20);
+    const r=await supabaseClient.from('users').select('user_id,external_code,full_name,phone,address').or(`full_name.ilike.*${safe}*,external_code.ilike.*${safe}*`).limit(20);
     let rows=r.error?[]:(r.data||[]);
     if(!rows.length) rows=CUSTOMERS_DATA.filter(c=>(c.name+c.id+c.phone+c.address).toLowerCase().includes(k.toLowerCase())).map(c=>({user_id:null,external_code:c.id,full_name:c.name,phone:c.phone,address:c.address}));
     box.innerHTML=rows.length?rows.map(c=>`<button class="card" style="display:block;width:100%;text-align:left;margin-top:8px;padding:12px;" onclick="selectExistingCustomerBooking(${c.user_id||'null'},'${esc2(c.external_code||'')}')"><b>${esc2(c.full_name)}</b><div class="muted">${esc2(c.external_code||'-')} | ${esc2(c.phone||'-')}</div><div class="muted">${esc2(c.address||'-')}</div></button>`).join(''):'<div class="muted">ไม่พบลูกค้าค่ะ หากเป็นลูกค้าใหม่ให้เพิ่มจากเมนู “ข้อมูลลูกค้า”</div>';
