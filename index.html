@@ -1322,7 +1322,7 @@ function showExistingCustomerBooking(){
       phone,
       address
     `)
-.eq('external_code', String(customerId))
+.eq('user_id', customerId)
     .maybeSingle();
 
   if(customerError || !customer){
@@ -2805,9 +2805,9 @@ function viewErrorDetail(errorId){
 
     const {data,error}=await supabaseClient
       .from('bookings')
-     .select('booking_id,booking_code,customer_id,property_id,service_type,scheduled_date,scheduled_time,status')
-      .order('scheduled_date',{ascending:true})
-      .order('scheduled_time',{ascending:true});
+ .select('booking_id,customer_id,source,service_type,booking_date,booking_time,address,phone,status,users(user_id,full_name,external_code)')
+.order('booking_date',{ascending:true})
+.order('booking_time',{ascending:true});
 
     if(error){
     console.error('โหลดรายการ Booking ไม่สำเร็จ:', error?.message, error?.details, error?.hint, error?.code);
@@ -2843,9 +2843,6 @@ function viewErrorDetail(errorId){
 
 
 <script>
-
-</body>
-</html>
 
 <!-- LUMINA PROMOTION FIX v1: make + เพิ่มโปรโมชั่น open a real form and work -->
 <script>
