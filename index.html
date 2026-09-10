@@ -1243,7 +1243,7 @@ function showExistingCustomerBooking(){
       address
     `)
     .or(
-      `full_name.ilike.%${keyword}%,external_code.ilike.%${keyword}%,phone.ilike.%${keyword}%`
+      .or(`full_name.ilike.%${safe}%,external_code.ilike.%${safe}%`)
     )
     .order('user_id', { ascending: true })
     .limit(20);
@@ -2758,8 +2758,8 @@ function viewErrorDetail(errorId){
         customer_id: customer.user_id,
         property_id: Number(propertyId),
         service_type: serviceType,
-        scheduled_date: bookingDate,
-        scheduled_time: bookingTime,
+        booking_date: bookingDate,
+        booking_time: bookingTime,
         status: 'confirmed'
       })
       .select('booking_id,booking_code')
@@ -2805,7 +2805,7 @@ function viewErrorDetail(errorId){
 
     const {data,error}=await supabaseClient
       .from('bookings')
- .select('booking_id,customer_id,source,service_type,booking_date,booking_time,address,phone,status,users(user_id,full_name,external_code)')
+.select('booking_id,booking_code,customer_id,property_id,service_type,booking_date,booking_time,status')
 .order('booking_date',{ascending:true})
 .order('booking_time',{ascending:true});
 
@@ -2826,7 +2826,7 @@ function viewErrorDetail(errorId){
         <td><b>${esc2(b.booking_code || `BK-${b.booking_id}`)}</b></td>
         <td>${esc2(name)}</td>
         <td><span class="tag">${esc2(b.service_type||'-')}</span></td>
-        <td>${esc2(b.scheduled_date||'-')} (${esc2(b.scheduled_time||'-')})</td>
+        <td>${esc2(b.booking_date||'-')} (${esc2(b.booking_time||'-')})</td>
         <td>${esc2(address)}</td>
         <td>${esc2(phone)}</td>
         <td><span class="tag ${cls}">${statusText}</span></td>
@@ -2840,7 +2840,6 @@ function viewErrorDetail(errorId){
   };
 })();
 </script>
-
 
 <script>
 
