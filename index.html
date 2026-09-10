@@ -2324,7 +2324,7 @@ function viewProductDetail(id){const p=PRODUCTS_DATA.find(x=>x.id===id);if(!p)re
         : 'red';
 
     return `
-      <tr>
+      <tr data-error-id="${e.error_id}">
 
         <td>
           <b>ERR-${e.error_id}</b>
@@ -2385,39 +2385,63 @@ function viewProductDetail(id){const p=PRODUCTS_DATA.find(x=>x.id===id);if(!p)re
 
 
 function viewErrorDetail(errorId){
-  const body = document.getElementById('errorCodeTableBody');
+  const id=String(errorId);
+  const body=document.getElementById('errorCodeTableBody');
   if(!body) return;
-
-  const row = body.querySelector(`tr[data-error-id="${errorId}"]`);
-
-  openModal(`
-    <h3>รายละเอียด Error Code</h3>
-    <div class="list" style="margin-top:10px;">
-      <div class="row">
-        <span>Error Code ID</span>
-        <b>ERR-${errorId}</b>
+  const row=body.querySelector(`tr[data-error-id="${id}"]`);
+  if(row){
+    const cells=row.querySelectorAll('td');
+    const customerCell=cells[1]?.innerText||'-';
+    const code=cells[2]?.innerText?.trim()||'-';
+    const detail=cells[3]?.innerText?.trim()||'-';
+    const status=cells[4]?.innerText?.trim()||'รอดำเนินการ';
+    openModal(`
+      <h3>รายละเอียด Error Code</h3>
+      <div class="list" style="margin-top:10px;">
+        <div class="row"><span>Error Code ID</span><b>ERR-${id}</b></div>
+        <div class="row"><span>ลูกค้า / อุปกรณ์</span><b>${customerCell}</b></div>
+        <div class="row"><span>รหัส Error</span><b>${code}</b></div>
+        <div class="row"><span>รายละเอียดอาการ</span><b>${detail}</b></div>
+        <div class="row"><span>สถานะ</span><b>${status}</b></div>
       </div>
-
-      <div class="row">
-        <span>รหัส Error</span>
-        <b>U4</b>
-      </div>
-
-      <div class="row">
-        <span>สถานะ</span>
-        <b>รอดำเนินการ</b>
-      </div>
-    </div>
-
-    <button
-      class="btn"
-      style="margin-top:16px;width:100%;"
-      onclick="closeModal()"
-    >
-      ปิดหน้าต่าง
-    </button>
-  `);
+      <button class="btn" style="margin-top:16px;width:100%;" onclick="closeModal()">ปิดหน้าต่าง</button>
+    `);
+    return;
+  }
+  openModal(`<h3>ไม่พบข้อมูล Error Code</h3><p style="margin-top:10px;">ไม่พบรายการ ERR-${id} ในรายการปัจจุบัน</p><button class="btn" style="margin-top:16px;width:100%;" onclick="closeModal()">ปิดหน้าต่าง</button>`);
 } 
+
+// ============================================================
+// ERROR CODE DETAIL FIX — ใช้ข้อมูลแถวจริง ไม่ hardcode U4
+// ============================================================
+(function(){
+  const DEMO_ERROR_CODES = [
+    {id:'ERR-001',customerId:'C07',room:'ห้องรับแขก',code:'U4',detail:'ข้อผิดพลาดในการสื่อสารระหว่างเครื่องภายในและเครื่องภายนอก',team:'ทีม C',jobId:'JOB-E-20260915-001',status:'pending'},
+    {id:'ERR-002',customerId:'C09',room:'ห้องรับแขก',code:'E1',detail:'แผงวงจรอิเล็กทรอนิกส์ของเครื่องภายนอกผิดปกติ',team:'ทีม C',jobId:'JOB-E-20260915-002',status:'pending'}
+  ];
+  window.renderErrorCodes=async function(){
+    const body=document.getElementById('errorCodeTableBody');
+    if(!body) return;
+    let items=[];
+    try{
+      const {data,error}=await supabaseClient.from('error_reports').select('error_id,customer_id,property_id,ac_id,error_code,error_detail,status,job_id,created_at,updated_at').order('created_at',{ascending:false});
+      if(!error && Array.isArray(data)) items=data;
+    }catch(e){ console.warn('โหลด Error Code จาก Supabase ไม่สำเร็จ ใช้ข้อมูลเดโมแทน',e); }
+    if(!items.length) items=DEMO_ERROR_CODES.map(e=>({...e,error_id:e.id.replace('ERR-','')}));
+    body.innerHTML=items.map(e=>{
+      const id=String(e.id||('ERR-'+e.error_id));
+      const customerId=e.customer_id||e.customerId;
+      const customer=getCustomer(customerId)||{};
+      const customerCode=customer.id||customerId||'-';
+      const customerName=customer.name||'-';
+      const detail=e.error_detail||e.detail||'-';
+      const status=e.status||'pending';
+      const statusText=status==='done'?'ซ่อมเสร็จแล้ว':status==='assigned'?'แจกงานแล้ว':status==='in_progress'?'กำลังซ่อม':status==='cancelled'?'ยกเลิก':'รอดำเนินการ';
+      const statusClass=status==='done'?'green':status==='cancelled'?'red':status==='in_progress'||status==='assigned'?'orange':'red';
+      return `<tr data-error-id="${id.replace('ERR-','')}"><td><b>${id.startsWith('ERR-')?id:'ERR-'+id}</b></td><td><b>${customerCode} — ${customerName}</b><div class="muted" style="font-size:11px;margin-top:3px;">${e.room||('AC-'+(e.ac_id||'-'))} | ${e.team||('บ้าน/ทรัพย์สิน '+(e.property_id||'-'))}</div></td><td><span class="tag red">${e.error_code||e.code||'-'}</span></td><td>${detail}</td><td><span class="tag ${statusClass}">${statusText}</span></td><td><button class="btn ${status==='pending'?'':'secondary'}" style="font-size:12px;" onclick="viewErrorDetail('${String(e.error_id||id.replace('ERR-',''))}')">ดูรายละเอียด</button></td></tr>`;
+    }).join('');
+  };
+})();
 
 // ============================================================
 // LUMINA FINAL ACTION LAYER — เพิ่ม/แก้ไขข้อมูลโดยไม่ต้องแก้ SQL
@@ -2825,6 +2849,80 @@ function viewErrorDetail(errorId){
   /* local fallback เดิมจะไม่สร้าง Booking ปลอมอีก */
   window.saveLocalBooking = async function(){
     showToast('กรุณาเลือกข้อมูลลูกค้าที่มาจากฐานข้อมูลเพื่อสร้าง Booking จริงค่ะ');
+  };
+})();
+</script>
+
+
+<script>
+/* LUMINA REAL BOOKING FIX v2 — local booking form must create real DB rows */
+(function(){
+  window.saveLocalBooking = async function(customerId,index){
+    const c=getCustomer(customerId), h=c?.houses?.[index];
+    const selected=[...document.querySelectorAll('input[name="localBookingAC"]:checked')];
+    const date=(document.getElementById('localBookingDate')?.value||'').trim();
+    const time=(document.getElementById('localBookingTime')?.value||'').trim();
+    const service=(document.getElementById('localBookingService')?.value||'').trim();
+    if(!c||!h||!date||!time||!service){showToast('กรุณาเลือกข้อมูลการจองให้ครบค่ะ');return;}
+
+    showToast('กำลังบันทึก Booking จริงลงฐานข้อมูลค่ะ');
+
+    const {data:user,error:userError}=await supabaseClient
+      .from('users').select('user_id,external_code,full_name').eq('external_code',customerId).maybeSingle();
+    if(userError||!user){
+      console.error('โหลดลูกค้าไม่สำเร็จ:',userError);
+      showToast('ไม่พบลูกค้าในฐานข้อมูล จึงยังสร้าง Booking จริงไม่ได้ค่ะ');
+      return;
+    }
+
+    let propertyId=null;
+    const {data:props,error:propError}=await supabaseClient
+      .from('customer_properties').select('property_id,property_name,address')
+      .eq('customer_id',user.user_id);
+    if(propError){console.error('โหลดบ้าน/สถานที่ไม่สำเร็จ:',propError);}
+    const matched=(props||[]).find(x=>String(x.property_name||'').trim()===String(h.name||'').trim())
+      ||(props||[]).find(x=>String(x.address||'').trim()===String(h.address||'').trim())
+      ||(props||[])[0];
+    propertyId=matched?.property_id||null;
+    if(!propertyId){
+      showToast('ไม่พบบ้าน/สถานที่ของลูกค้าในฐานข้อมูลค่ะ');
+      return;
+    }
+
+    const customerCode=String(user.external_code||customerId);
+    const bookingPrefix=`BK${customerCode.startsWith('C')?'C':customerCode}-${date.replaceAll('-','')}-`;
+    const {data:existing,error:listError}=await supabaseClient.from('bookings')
+      .select('booking_code').like('booking_code',`${bookingPrefix}%`);
+    if(listError){console.error('ตรวจเลข Booking ไม่สำเร็จ:',listError);showToast('ตรวจสอบเลข Booking ไม่สำเร็จค่ะ');return;}
+    const max=(existing||[]).map(x=>Number(String(x.booking_code||'').match(/-(\d+)$/)?.[1]||0)).reduce((a,b)=>Math.max(a,b),0);
+    const bookingCode=`${bookingPrefix}${String(max+1).padStart(3,'0')}`;
+
+    const {data:booking,error:bookingError}=await supabaseClient.from('bookings').insert({
+      booking_code:bookingCode,customer_id:user.user_id,property_id:Number(propertyId),
+      service_type:service,scheduled_date:date,scheduled_time:time,status:'confirmed'
+    }).select('booking_id,booking_code').single();
+    if(bookingError){
+      console.error('สร้าง Booking ไม่สำเร็จ:',bookingError);
+      showToast('สร้าง Booking ไม่สำเร็จ — หากขึ้น INSERT/RLS ให้ส่งข้อความ error มาให้ฉัน');
+      return;
+    }
+
+    const {error:jobError}=await supabaseClient.from('job_orders').insert({
+      booking_id:booking.booking_id,customer_id:user.user_id,property_id:Number(propertyId),
+      service_type:service,scheduled_date:date,scheduled_time_slot:time,
+      details:JSON.stringify({air_conditioner_rooms:selected.map(x=>h.airs?.[Number(x.value)]?.room).filter(Boolean)}),
+      status:'pending',progress:0,job_code:`JOB-${customerCode}-${date.replaceAll('-','')}-${String(max+1).padStart(3,'0')}`
+    });
+    if(jobError){
+      console.error('สร้าง Job ไม่สำเร็จ:',jobError);
+      showToast(`สร้าง Booking ${bookingCode} แล้ว แต่สร้าง Job ไม่สำเร็จค่ะ`);
+      return;
+    }
+
+    closeModal();
+    showToast(`สร้าง Booking ${bookingCode} เรียบร้อยแล้วค่ะ`);
+    await window.renderBookings();
+    await loadJobsFromSupabase();
   };
 })();
 </script>
