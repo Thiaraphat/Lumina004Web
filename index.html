@@ -1242,8 +1242,9 @@ function showExistingCustomerBooking(){
       phone,
       address
     `)
-    .or(
-      .or(`full_name.ilike.%${safe}%,external_code.ilike.%${safe}%`)
+   .or(
+  `full_name.ilike.%${keyword}%,external_code.ilike.%${keyword}%`
+)
     )
     .order('user_id', { ascending: true })
     .limit(20);
@@ -2840,8 +2841,6 @@ function viewErrorDetail(errorId){
   };
 })();
 </script>
-
-<script>
 
 <!-- LUMINA PROMOTION FIX v1: make + เพิ่มโปรโมชั่น open a real form and work -->
 <script>
