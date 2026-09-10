@@ -1235,18 +1235,18 @@ function showExistingCustomerBooking(){
 
   const { data, error } = await supabaseClient
     .from('users')
-    .select(`
-      user_id,
-      external_code,
-      full_name,
-      phone,
-      address
-    `)
-   .or(
+   .select(`
+  user_id,
+  external_code,
+  full_name,
+  phone,
+  address
+`)
+.or(
   `full_name.ilike.%${keyword}%,external_code.ilike.%${keyword}%`
 )
-    .order('user_id', { ascending: true })
-    .limit(20);
+.order('user_id', { ascending: true })
+.limit(20);
 
   if(error){
 
