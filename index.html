@@ -357,6 +357,7 @@ tr:last-child td{border-bottom:none}
     <section class="page" id="products">
       <div class="section-title">
         <h2>ฐานข้อมูลสินค้า & ราคาเครื่องปรับอากาศ (Catalog & Stock)</h2>
+        <button class="btn success" onclick="openProductForm()">+ เพิ่มสินค้า</button>
       </div>
 
       <div class="filter-card">
@@ -471,7 +472,7 @@ tr:last-child td{border-bottom:none}
     <section class="page" id="customers">
       <div class="section-title">
         <h2>ฐานข้อมูลลูกค้าทั้งหมด</h2>
-        <button class="btn" onclick="showToast('เพิ่มข้อมูลลูกค้าใหม่เรียบร้อยแล้วค่ะ')">+ เพิ่มลูกค้า / เพิ่มงานจองคิว</button>
+        <button class="btn" onclick="openNewCustomerForm()">+ เพิ่มลูกค้า</button>
       </div>
       <div class="filter-pills">
         <button class="pill-btn active" onclick="filterCustomerTable('ALL', this)">ลูกค้าทั้งหมด</button>
@@ -488,7 +489,13 @@ tr:last-child td{border-bottom:none}
 
     <!-- PAGE 8: บ้าน & เครื่องของลูกค้า -->
     <section class="page" id="customer-assets">
-      <div class="section-title"><h2>ข้อมูลเครื่องปรับอากาศและบ้านของลูกค้า</h2></div>
+      <div class="section-title">
+        <h2>ข้อมูลเครื่องปรับอากาศและบ้านของลูกค้า</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" onclick="openNewPropertyForm(currentCustomerId)">+ เพิ่มบ้าน / สถานที่</button>
+          <button class="btn success" onclick="openNewAirForm(currentCustomerId)">+ เพิ่มเครื่องแอร์</button>
+        </div>
+      </div>
       <div class="cust-scroll-tabs" id="customerAssetTabs"></div>
       <div class="card" style="margin-bottom:16px;">
         <h3 style="margin:0;" id="assetMainTitle"></h3>
@@ -522,7 +529,13 @@ tr:last-child td{border-bottom:none}
 
     <!-- PAGE 10: จัดการทีมช่าง -->
     <section class="page" id="teams">
-      <div class="section-title"><h2>จัดการข้อมูลทีมช่าง</h2><button class="btn success" onclick="addNewTeamModal()">+ เพิ่มทีมช่างใหม่</button></div>
+      <div class="section-title">
+        <h2>จัดการข้อมูลทีมช่าง</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" onclick="openNewTechnicianForm()">+ เพิ่มช่าง</button>
+          <button class="btn success" onclick="addNewTeamModal()">+ เพิ่มทีมช่างใหม่</button>
+        </div>
+      </div>
       <div id="teamManagementContainer"></div>
     </section>
 
@@ -545,25 +558,34 @@ tr:last-child td{border-bottom:none}
     <!-- PAGE 13: ตั้งค่าร้าน -->
     <section class="page" id="settings">
       <div class="section-title">
-        <h2>ตั้งค่าข้อมูลร้าน & ช่องทางการติดต่อ (Store Settings)</h2>
+        <h2>ตั้งค่าข้อมูลร้าน & ช่องทางการติดต่อ</h2>
       </div>
 
       <div class="grid grid-2">
         <div class="card">
-          <h3>ข้อมูลสำนักงานหลัก</h3>
-          <div class="list">
-            <div class="row"><span>ชื่อร้าน</span><b>Lumina Electric Air</b></div>
-            <div class="row"><span>เบอร์โทรศัพท์สำนักงาน</span><b>02-000-0000</b></div>
-            <div class="row"><span>LINE Official Account</span><b><a href="https://line.me/R/ti/p/@420rkehz" target="_blank" style="color:var(--blue);text-decoration:none;">@420rkehz</a></b></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <h3 style="margin:0;">ข้อมูลร้าน</h3>
+            <button class="btn secondary" style="font-size:12px;" onclick="openStoreSettingsForm()">แก้ไขข้อมูลร้าน</button>
           </div>
+          <div class="list" id="storeSettingsDisplay" style="margin-top:12px;"></div>
         </div>
 
         <div class="card">
-          <h3>ตั้งค่าการแจ้งเตือน & บัญชี</h3>
-          <div class="list">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <h3 style="margin:0;">ข้อมูลบัญชีธนาคาร</h3>
+            <button class="btn secondary" style="font-size:12px;" onclick="openBankSettingsForm()">แก้ไขข้อมูลบัญชี</button>
+          </div>
+          <div class="list" id="bankSettingsDisplay" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <h3 style="margin:0;">ตั้งค่าการแจ้งเตือน</h3>
+          </div>
+          <div class="list" style="margin-top:12px;">
             <div class="row"><span>การเชื่อมต่อ Blynk IoT</span><span class="tag green">เชื่อมต่อแล้ว</span></div>
             <div class="row"><span>การเชื่อมต่อ LINE Notification</span><span class="tag green">เชื่อมต่อแล้ว</span></div>
-            <div class="row"><span>เวอร์ชันระบบ</span><b>Lumina Admin v05.0</b></div>
+            <div class="row"><span>สถานะการแจ้งเตือนงาน</span><span class="tag green">เปิดใช้งาน</span></div>
           </div>
         </div>
       </div>
@@ -578,7 +600,10 @@ tr:last-child td{border-bottom:none}
 
       <div class="grid grid-2">
         <div class="card">
-          <h3>ข้อมูลส่วนตัวแอดมิน</h3>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <h3 style="margin:0;">ข้อมูลส่วนตัวแอดมิน</h3>
+            <button class="btn secondary" style="font-size:12px;" onclick="openAdminProfileForm()">แก้ไขข้อมูล</button>
+          </div>
           <div class="list">
             <div class="row"><span>ชื่อ-นามสกุล</span><b>แอดมินสมศรี</b></div>
             <div class="row"><span>ตำแหน่งงาน</span><b>Admin Officer</b></div>
@@ -2393,6 +2418,278 @@ function viewErrorDetail(errorId){
     </button>
   `);
 } 
+
+// ============================================================
+// LUMINA FINAL ACTION LAYER — เพิ่ม/แก้ไขข้อมูลโดยไม่ต้องแก้ SQL
+// ============================================================
+(function(){
+  const LS = {
+    products:'lumina_admin_products_v1',
+    customers:'lumina_admin_customers_v1',
+    teams:'lumina_admin_teams_v1',
+    store:'lumina_admin_store_v1',
+    bank:'lumina_admin_bank_v1',
+    admin:'lumina_admin_profile_v1'
+  };
+  const read=(k,f)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}};
+  const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+  const esc2=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const val=id=>(document.getElementById(id)?.value||'').trim();
+
+  // ---------- PRODUCTS ----------
+  const savedProducts=read(LS.products,null);
+  if(savedProducts && Array.isArray(savedProducts)) PRODUCTS_DATA=savedProducts;
+
+  window.loadProductsFromSupabase=async function(){
+    // Products ใช้ Catalog เดิม P01-P06 เป็นฐาน และรายการที่แอดมินเพิ่มไว้ใน browser
+    renderProducts(PRODUCTS_DATA);
+  };
+  window.renderProducts=function(items){
+    const c=document.getElementById('productGridContainer'); if(!c)return;
+    if(!items?.length){c.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;background:#fff;border-radius:14px;border:1px solid var(--line);"><b>ไม่พบสินค้าตามเงื่อนไขตัวกรองค่ะ</b></div>';return;}
+    c.innerHTML=items.map(p=>`
+      <div class="product-card">
+        <div>
+          <div class="product-badge-bar"><span class="product-brand">${esc2(p.brand||'-')}</span><span class="tag">${esc2(p.category||'-')}</span></div>
+          <div class="product-model">${esc2(p.model||'-')}</div>
+          <div style="margin-bottom:8px;display:flex;gap:4px;"><span class="tag ${p.type==='Inverter'?'':'orange'}">${esc2(p.type||'-')}</span>${p.hasPromo?'<span class="tag green">● มีโปรโมชั่น</span>':'<span class="tag gray">ไม่มีโปรโมชั่น</span>'}</div>
+          <div class="product-specs"><div><b>BTU:</b> ${Number(p.btu||0).toLocaleString()}</div><div><b>ราคา:</b> ฿${Number(p.price||0).toLocaleString()}</div></div>
+        </div>
+        <div class="product-price-bar">
+          <span class="product-price">฿${Number(p.price||0).toLocaleString()}</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn secondary" style="font-size:11px;" onclick="viewProductDetail('${esc2(p.id)}')">ดูรายละเอียด</button>
+            <button class="btn outline" style="font-size:11px;" onclick="editProduct('${esc2(p.id)}')">แก้ไข</button>
+            <button class="btn danger" style="font-size:11px;" onclick="deleteProduct('${esc2(p.id)}')">ลบ</button>
+          </div>
+        </div>
+      </div>`).join('');
+  };
+  window.openProductForm=function(id){
+    const p=id?PRODUCTS_DATA.find(x=>x.id===id):null;
+    openModal(`<h3>${p?'แก้ไขสินค้า':'เพิ่มสินค้าใหม่'}</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+        ${!p?'<label style="font-size:12px;font-weight:700;">รหัสสินค้า<input id="pfId" class="input" placeholder="เช่น P07" style="width:100%;margin-top:4px;"></label>':''}
+        <label style="font-size:12px;font-weight:700;">แบรนด์<input id="pfBrand" class="input" value="${esc2(p?.brand||'')}" placeholder="Daikin" style="width:100%;margin-top:4px;"></label>
+        <label style="font-size:12px;font-weight:700;">รุ่น<input id="pfModel" class="input" value="${esc2(p?.model||'')}" placeholder="FTKF18XV2S" style="width:100%;margin-top:4px;"></label>
+        <label style="font-size:12px;font-weight:700;">รูปแบบ<select id="pfCategory" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;"><option>ติดผนัง</option><option>ตั้งแขวน</option><option>สี่ทิศทาง</option></select></label>
+        <label style="font-size:12px;font-weight:700;">ระบบ<select id="pfType" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;"><option>Inverter</option><option>Standard</option></select></label>
+        <label style="font-size:12px;font-weight:700;">BTU<input id="pfBtu" type="number" value="${p?.btu||''}" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;"></label>
+        <label style="font-size:12px;font-weight:700;">ราคา<input id="pfPrice" type="number" value="${p?.price||''}" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;"></label>
+        <label style="font-size:12px;font-weight:700;grid-column:1/-1;">โปรโมชั่น<select id="pfPromo" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;"><option value="false">ไม่มีโปรโมชั่น</option><option value="true">มีโปรโมชั่น</option></select></label>
+      </div>
+      <button class="btn success" style="width:100%;margin-top:16px;" onclick="saveProductForm('${p?esc2(p.id):''}')">บันทึก</button>`);
+    if(p){document.getElementById('pfCategory').value=p.category||'ติดผนัง';document.getElementById('pfType').value=p.type||'Inverter';document.getElementById('pfPromo').value=String(!!p.hasPromo);}
+  };
+  window.saveProductForm=function(id){
+    const pid=id||val('pfId').toUpperCase();
+    if(!pid||!val('pfBrand')||!val('pfModel')||!val('pfBtu')||!val('pfPrice')){showToast('กรุณากรอกข้อมูลสินค้าให้ครบค่ะ');return;}
+    const item={id:pid,brand:val('pfBrand'),model:val('pfModel'),category:val('pfCategory'),type:val('pfType'),btu:Number(val('pfBtu')),price:Number(val('pfPrice')),hasPromo:val('pfPromo')==='true'};
+    const idx=PRODUCTS_DATA.findIndex(x=>x.id===pid);
+    if(idx>=0) PRODUCTS_DATA[idx]=item; else PRODUCTS_DATA.push(item);
+    write(LS.products,PRODUCTS_DATA); closeModal(); applyProductFilters(); showToast(`${idx>=0?'แก้ไข':'เพิ่ม'}สินค้า ${pid} เรียบร้อยแล้วค่ะ`);
+  };
+  window.editProduct=id=>openProductForm(id);
+  window.deleteProduct=function(id){
+    const p=PRODUCTS_DATA.find(x=>x.id===id);if(!p)return;
+    if(!confirm(`ต้องการลบ ${p.brand} ${p.model} ใช่หรือไม่คะ`))return;
+    PRODUCTS_DATA=PRODUCTS_DATA.filter(x=>x.id!==id);write(LS.products,PRODUCTS_DATA);applyProductFilters();showToast('ลบสินค้าเรียบร้อยแล้วค่ะ');
+  };
+
+  // ---------- CUSTOMER ADD ----------
+  window.openNewCustomerForm=function(){
+    openModal(`<h3>+ เพิ่มลูกค้าใหม่</h3><div style="display:grid;gap:10px;margin-top:14px;">
+      <label>ชื่อลูกค้า<input id="ncName" class="input" style="width:100%;margin-top:4px;" placeholder="ชื่อ-นามสกุล"></label>
+      <label>เบอร์โทรศัพท์<input id="ncPhone" class="input" style="width:100%;margin-top:4px;" placeholder="08x-xxx-xxxx"></label>
+      <label>ที่อยู่<input id="ncAddress" class="input" style="width:100%;margin-top:4px;" placeholder="ที่อยู่ลูกค้า"></label>
+    </div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveNewCustomer()">บันทึกลูกค้า</button>`);
+  };
+  window.saveNewCustomer=async function(){
+    const name=val('ncName'),phone=val('ncPhone'),address=val('ncAddress');
+    if(!name||!phone||!address){showToast('กรุณากรอกข้อมูลลูกค้าให้ครบค่ะ');return;}
+    const max=Math.max(0,...CUSTOMERS_DATA.map(c=>Number(String(c.id).replace(/\D/g,''))||0));
+    const code=`C${String(max+1).padStart(2,'0')}`;
+    const local={id:code,name,phone,address,statusType:'NORMAL',lastService:'ยังไม่มีประวัติ',queue:'ยังไม่มีคิวใหม่',pinned:false,houses:[]};
+    // พยายามบันทึก users ลง Supabase ตามโครงสร้างเดิม หากสิทธิ์ของตารางรองรับ
+    const {data,error}=await supabaseClient.from('users').insert({external_code:code,full_name:name,phone,address,role:'customer'}).select('user_id,external_code,full_name,phone,address').maybeSingle();
+    if(error) console.warn('บันทึกลูกค้าลง Supabase ไม่สำเร็จ ใช้ข้อมูลเดโมในหน้านี้แทน:',error);
+    CUSTOMERS_DATA.push(local);write(LS.customers,CUSTOMERS_DATA);closeModal();renderCustomers();renderCustomerAssetTabs();showToast(`เพิ่มลูกค้า ${code} เรียบร้อยแล้วค่ะ`);
+  };
+
+  // ---------- PROPERTY / AIR CONDITIONER ----------
+  window.openNewPropertyForm=function(customerId){
+    const c=getCustomer(customerId);if(!c)return;
+    openModal(`<h3>+ เพิ่มบ้าน / สถานที่ให้บริการ</h3><div style="display:grid;gap:10px;margin-top:14px;">
+      <label>ชื่อลูกค้า<input class="input" style="width:100%;margin-top:4px;" value="${esc2(c.name)}" disabled></label>
+      <label>ชื่อบ้าน/สถานที่<input id="npName" class="input" style="width:100%;margin-top:4px;" placeholder="เช่น บ้านหลัก"></label>
+      <label>ที่อยู่<input id="npAddress" class="input" style="width:100%;margin-top:4px;" value="${esc2(c.address)}"></label>
+    </div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveNewProperty('${esc2(customerId)}')">บันทึกสถานที่</button>`);
+  };
+  window.saveNewProperty=async function(customerId){
+    const c=getCustomer(customerId),name=val('npName'),address=val('npAddress');if(!c||!name||!address){showToast('กรุณากรอกข้อมูลสถานที่ให้ครบค่ะ');return;}
+    const uid=(await supabaseClient.from('users').select('user_id').eq('external_code',customerId).maybeSingle()).data?.user_id;
+    if(uid){const r=await supabaseClient.from('customer_properties').insert({customer_id:uid,property_name:name,address}).select('property_id,property_name,address').maybeSingle();if(r.error)console.warn('บันทึกสถานที่ลง Supabase ไม่สำเร็จ:',r.error);}
+    c.houses.push({name,address,airs:[]});write(LS.customers,CUSTOMERS_DATA);closeModal();renderCustomerAssets(customerId);renderCustomers();showToast('เพิ่มบ้าน / สถานที่เรียบร้อยแล้วค่ะ');
+  };
+  window.openNewAirForm=function(customerId,propertyIndex){
+    const c=getCustomer(customerId);if(!c)return;
+    const houses=c.houses||[];
+    if(!houses.length){openNewPropertyForm(customerId);return;}
+    const options=houses.map((h,i)=>`<option value="${i}">${esc2(h.name)}</option>`).join('');
+    const prods=PRODUCTS_DATA.map(p=>`<option value="${esc2(p.id)}">${esc2(p.brand)} ${esc2(p.model)} — ${Number(p.btu||0).toLocaleString()} BTU</option>`).join('');
+    openModal(`<h3>+ เพิ่มเครื่องแอร์ของลูกค้า</h3><div style="display:grid;gap:10px;margin-top:14px;">
+      <label>บ้าน/สถานที่<select id="naHouse" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;">${options}</select></label>
+      <label>ห้อง<input id="naRoom" class="input" style="width:100%;margin-top:4px;" placeholder="เช่น ห้องนอนใหญ่"></label>
+      <label>สินค้า / รุ่น<select id="naProduct" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;">${prods}</select></label>
+      <label>สถานะ<select id="naStatus" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;"><option>ปกติ</option><option>เสีย (ตามแจ้ง)</option></select></label>
+    </div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveNewAir('${esc2(customerId)}')">บันทึกเครื่องแอร์</button>`);
+    if(propertyIndex!=null)document.getElementById('naHouse').value=String(propertyIndex);
+  };
+  window.saveNewAir=async function(customerId){
+    const c=getCustomer(customerId),hi=Number(val('naHouse')),room=val('naRoom'),product=val('naProduct'),status=val('naStatus');
+    if(!c||!c.houses[hi]||!room||!product){showToast('กรุณากรอกข้อมูลเครื่องแอร์ให้ครบค่ะ');return;}
+    const uid=(await supabaseClient.from('users').select('user_id').eq('external_code',customerId).maybeSingle()).data?.user_id;
+    const house=c.houses[hi];
+    let pid=uid?((await supabaseClient.from('customer_properties').select('property_id').eq('customer_id',uid).eq('property_name',house.name).maybeSingle()).data?.property_id):null;
+    if(uid&&pid){const r=await supabaseClient.from('customer_air_conditioners').insert({customer_id:uid,property_id:pid,room_name:room,product_id:product,status,error_code:status==='ปกติ'?'normal':null,arduino_connected:false}).select('ac_id').maybeSingle();if(r.error)console.warn('บันทึกเครื่องแอร์ลง Supabase ไม่สำเร็จ:',r.error);}
+    house.airs.push({room,product,status,errorCode:status==='ปกติ'?'normal':undefined,arduino:status==='ปกติ'?'ดึงข้อมูลปกติ':'ไม่มี Arduino (เสียตามที่ลูกค้าบอก)'});
+    write(LS.customers,CUSTOMERS_DATA);closeModal();renderCustomerAssets(customerId);renderCustomers();showToast('เพิ่มเครื่องแอร์เรียบร้อยแล้วค่ะ');
+  };
+
+  // ---------- TEAMS / MEMBERS ----------
+  const savedTeams=read(LS.teams,null);
+  if(savedTeams && Array.isArray(savedTeams)){
+    TECHNICIANS_DATA.length=0; savedTeams.forEach(t=>TECHNICIANS_DATA.push(t));
+  }
+  window.addNewTeamModal=function(){
+    openModal(`<h3>+ เพิ่มทีมช่างใหม่</h3><div style="display:grid;gap:10px;margin-top:14px;">
+      <label>ชื่อทีม<input id="ntName" class="input" style="width:100%;margin-top:4px;" placeholder="เช่น ทีม D"></label>
+      <label>หัวหน้าทีม<input id="ntLeader" class="input" style="width:100%;margin-top:4px;" placeholder="ชื่อหัวหน้าทีม"></label>
+    </div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveNewTeam()">บันทึกเพิ่มทีม</button>`);
+  };
+  window.saveNewTeam=function(){
+    const team=val('ntName'),leader=val('ntLeader');if(!team||!leader){showToast('กรุณาระบุชื่อทีมและหัวหน้าทีมค่ะ');return;}
+    if(TECHNICIANS_DATA.some(t=>t.team===team)){showToast('มีชื่อทีมนี้แล้วค่ะ');return;}
+    const id='T'+String(Math.max(0,...TECHNICIANS_DATA.map(t=>Number(String(t.id).replace(/\D/g,''))||0))+1).padStart(2,'0');
+    TECHNICIANS_DATA.push({id,name:leader.startsWith('ช่าง')?leader:'ช่าง'+leader,team,position:'หัวหน้าทีม',age:0,phone:'-',expertise:'-',experience:'-',status:'พร้อมปฏิบัติงาน',points:0,clockIn:'-',clockOut:'-',chat:[]});
+    write(LS.teams,TECHNICIANS_DATA);closeModal();renderTeamManagement();renderTechChatList();showToast(`เพิ่ม ${team} และหัวหน้าทีมเรียบร้อยแล้วค่ะ`);
+  };
+  window.openNewTechnicianForm=function(team){
+    const teams=[...new Set(TECHNICIANS_DATA.map(t=>t.team))];const opts=teams.map(t=>`<option>${esc2(t)}</option>`).join('');
+    openModal(`<h3>+ เพิ่มช่าง / ลูกทีม</h3><div style="display:grid;gap:10px;margin-top:14px;">
+      <label>ทีม<select id="tmTeam" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;">${opts}<option>+ สร้างทีมใหม่</option></select></label>
+      <label>ชื่อช่าง<input id="tmName" class="input" style="width:100%;margin-top:4px;" placeholder="ชื่อช่าง"></label>
+      <label>ตำแหน่ง<select id="tmPosition" style="width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:8px;"><option>หัวหน้าทีม</option><option selected>ผู้ช่วยช่าง</option><option>ช่างฝึกหัด</option></select></label>
+      <label>เบอร์โทร<input id="tmPhone" class="input" style="width:100%;margin-top:4px;" placeholder="เบอร์โทรศัพท์"></label>
+      <label>อายุ<input id="tmAge" type="number" class="input" style="width:100%;margin-top:4px;" placeholder="อายุ"></label>
+      <label>ความเชี่ยวชาญ<input id="tmExpertise" class="input" style="width:100%;margin-top:4px;" placeholder="เช่น ติดตั้ง / ล้าง / ซ่อม"></label>
+      <label>ประสบการณ์<input id="tmExperience" class="input" style="width:100%;margin-top:4px;" placeholder="เช่น 3 ปี"></label>
+    </div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveNewTechnician()">บันทึกสมาชิกทีม</button>`);
+    if(team&&teams.includes(team))document.getElementById('tmTeam').value=team;
+  };
+  window.saveNewTechnician=function(){
+    let team=val('tmTeam'),name=val('tmName');if(!name||!team){showToast('กรุณากรอกข้อมูลช่างให้ครบค่ะ');return;}
+    if(team==='+ สร้างทีมใหม่'){team=prompt('ระบุชื่อทีมใหม่');if(!team)return;}
+    const id='T'+String(Math.max(0,...TECHNICIANS_DATA.map(t=>Number(String(t.id).replace(/\D/g,''))||0))+1).padStart(2,'0');
+    TECHNICIANS_DATA.push({id,name:name.startsWith('ช่าง')?name:'ช่าง'+name,team,position:val('tmPosition'),age:Number(val('tmAge'))||0,phone:val('tmPhone')||'-',expertise:val('tmExpertise')||'-',experience:val('tmExperience')||'-',status:'พร้อมปฏิบัติงาน',points:0,clockIn:'-',clockOut:'-',chat:[]});
+    write(LS.teams,TECHNICIANS_DATA);closeModal();renderTeamManagement();renderTechChatList();showToast(`เพิ่ม ${name} เข้า ${team} เรียบร้อยแล้วค่ะ`);
+  };
+  window.addTeamMember=function(team){openNewTechnicianForm(team)};
+
+  // ---------- STORE / BANK / ADMIN PROFILE ----------
+  let store=read(LS.store,{name:'Lumina Electric Air',phone:'02-000-0000',address:'อุดรธานี',hours:'08:00–18:00 น.',line:'@420rkehz',facebook:'Lumina Electric Air',instagram:'@lumina.electric.air',tiktok:'@lumina.electric.air',website:'-'});
+  let bank=read(LS.bank,{bank:'ธนาคารกสิกรไทย',accountName:'Lumina Electric Air',accountNumber:'123-4-56789-0',accountType:'ออมทรัพย์'});
+  let admin=read(LS.admin,{name:'แอดมินสมศรี',position:'Admin Officer',phone:'081-554-3322',email:'somsri@lumina.com'});
+
+  function renderSettings(){
+    const s=document.getElementById('storeSettingsDisplay'),b=document.getElementById('bankSettingsDisplay');
+    if(s)s.innerHTML=`<div class="row"><span>ชื่อร้าน</span><b>${esc2(store.name)}</b></div><div class="row"><span>เบอร์โทรศัพท์</span><b>${esc2(store.phone)}</b></div><div class="row"><span>ที่อยู่</span><b>${esc2(store.address)}</b></div><div class="row"><span>เวลาเปิด–ปิด</span><b>${esc2(store.hours)}</b></div><div class="row"><span>LINE OA</span><b>${esc2(store.line)}</b></div><div class="row"><span>Facebook</span><b>${esc2(store.facebook)}</b></div><div class="row"><span>Instagram</span><b>${esc2(store.instagram)}</b></div><div class="row"><span>TikTok</span><b>${esc2(store.tiktok)}</b></div><div class="row"><span>เว็บไซต์</span><b>${esc2(store.website)}</b></div>`;
+    if(b)b.innerHTML=`<div class="row"><span>ธนาคาร</span><b>${esc2(bank.bank)}</b></div><div class="row"><span>ชื่อบัญชี</span><b>${esc2(bank.accountName)}</b></div><div class="row"><span>เลขบัญชี</span><b>${esc2(bank.accountNumber)}</b></div><div class="row"><span>ประเภทบัญชี</span><b>${esc2(bank.accountType)}</b></div>`;
+    const prof=document.querySelector('#profile .card .list');
+    if(prof)prof.innerHTML=`<div class="row"><span>ชื่อ-นามสกุล</span><b>${esc2(admin.name)}</b></div><div class="row"><span>ตำแหน่งงาน</span><b>${esc2(admin.position)}</b></div><div class="row"><span>เบอร์โทรศัพท์</span><b>${esc2(admin.phone)}</b></div><div class="row"><span>อีเมล</span><b>${esc2(admin.email)}</b></div>`;
+    const h=document.querySelector('.greeting h1');if(h)h.textContent=`สวัสดี ${admin.name} (${admin.position})`;
+  }
+  window.openStoreSettingsForm=function(){
+    openModal(`<h3>แก้ไขข้อมูลร้าน</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+      <label>ชื่อร้าน<input id="stName" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.name)}"></label>
+      <label>เบอร์โทร<input id="stPhone" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.phone)}"></label>
+      <label style="grid-column:1/-1;">ที่อยู่<input id="stAddress" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.address)}"></label>
+      <label>เวลาเปิด–ปิด<input id="stHours" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.hours)}"></label>
+      <label>LINE OA<input id="stLine" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.line)}"></label>
+      <label>Facebook<input id="stFb" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.facebook)}"></label>
+      <label>Instagram<input id="stIg" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.instagram)}"></label>
+      <label>TikTok<input id="stTk" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.tiktok)}"></label>
+      <label>เว็บไซต์<input id="stWeb" class="input" style="width:100%;margin-top:4px;" value="${esc2(store.website)}"></label>
+    </div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveStoreSettings()">บันทึกข้อมูลร้าน</button>`);
+  };
+  window.saveStoreSettings=function(){store={name:val('stName'),phone:val('stPhone'),address:val('stAddress'),hours:val('stHours'),line:val('stLine'),facebook:val('stFb'),instagram:val('stIg'),tiktok:val('stTk'),website:val('stWeb')};write(LS.store,store);renderSettings();closeModal();showToast('บันทึกข้อมูลร้านเรียบร้อยแล้วค่ะ');};
+  window.openBankSettingsForm=function(){openModal(`<h3>แก้ไขข้อมูลบัญชีธนาคาร</h3><div style="display:grid;gap:10px;margin-top:14px;"><label>ธนาคาร<input id="bkBank" class="input" style="width:100%;margin-top:4px;" value="${esc2(bank.bank)}"></label><label>ชื่อบัญชี<input id="bkName" class="input" style="width:100%;margin-top:4px;" value="${esc2(bank.accountName)}"></label><label>เลขบัญชี<input id="bkNumber" class="input" style="width:100%;margin-top:4px;" value="${esc2(bank.accountNumber)}"></label><label>ประเภทบัญชี<input id="bkType" class="input" style="width:100%;margin-top:4px;" value="${esc2(bank.accountType)}"></label></div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveBankSettings()">บันทึกข้อมูลบัญชี</button>`);};
+  window.saveBankSettings=function(){bank={bank:val('bkBank'),accountName:val('bkName'),accountNumber:val('bkNumber'),accountType:val('bkType')};write(LS.bank,bank);renderSettings();closeModal();showToast('บันทึกข้อมูลบัญชีธนาคารเรียบร้อยแล้วค่ะ');};
+  window.openAdminProfileForm=function(){openModal(`<h3>แก้ไขข้อมูลแอดมิน</h3><div style="display:grid;gap:10px;margin-top:14px;"><label>ชื่อ-นามสกุล<input id="adName" class="input" style="width:100%;margin-top:4px;" value="${esc2(admin.name)}"></label><label>ตำแหน่ง<input id="adPosition" class="input" style="width:100%;margin-top:4px;" value="${esc2(admin.position)}"></label><label>เบอร์โทร<input id="adPhone" class="input" style="width:100%;margin-top:4px;" value="${esc2(admin.phone)}"></label><label>อีเมล<input id="adEmail" class="input" style="width:100%;margin-top:4px;" value="${esc2(admin.email)}"></label></div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveAdminProfile()">บันทึกข้อมูล</button>`);};
+  window.saveAdminProfile=async function(){
+    admin={name:val('adName'),position:val('adPosition'),phone:val('adPhone'),email:val('adEmail')};write(LS.admin,admin);
+    const q=await supabaseClient.from('users').select('user_id').eq('full_name','แอดมินสมศรี').maybeSingle();
+    if(q.data?.user_id){const r=await supabaseClient.from('users').update({full_name:admin.name,phone:admin.phone,email:admin.email}).eq('user_id',q.data.user_id);if(r.error)console.warn('อัปเดตโปรไฟล์แอดมินใน Supabase ไม่สำเร็จ:',r.error);}
+    renderSettings();closeModal();showToast('บันทึกข้อมูลแอดมินเรียบร้อยแล้วค่ะ');
+  };
+
+  // Ensure customer search uses real Supabase users first, then demo data only as a safe fallback.
+  window.searchExistingCustomerBooking=async function(){
+    const input=document.getElementById('existingCustomerSearch'),box=document.getElementById('existingCustomerResults');if(!input||!box)return;
+    const k=input.value.trim();if(!k){box.innerHTML='<div class="muted">พิมพ์ชื่อ เบอร์โทร หรือรหัสลูกค้าเพื่อค้นหา</div>';return;}
+    box.innerHTML='<div class="muted">กำลังค้นหาลูกค้าจากฐานข้อมูล...</div>';
+    const safe=k.replace(/[%_,]/g,'');
+    const r=await supabaseClient.from('users').select('user_id,external_code,full_name,phone,address').or(`full_name.ilike.%${safe}%,external_code.ilike.%${safe}%,phone.ilike.%${safe}%`).limit(20);
+    let rows=r.error?[]:(r.data||[]);
+    if(!rows.length) rows=CUSTOMERS_DATA.filter(c=>(c.name+c.id+c.phone+c.address).toLowerCase().includes(k.toLowerCase())).map(c=>({user_id:null,external_code:c.id,full_name:c.name,phone:c.phone,address:c.address}));
+    box.innerHTML=rows.length?rows.map(c=>`<button class="card" style="display:block;width:100%;text-align:left;margin-top:8px;padding:12px;" onclick="selectExistingCustomerBooking(${c.user_id||'null'},'${esc2(c.external_code||'')}')"><b>${esc2(c.full_name)}</b><div class="muted">${esc2(c.external_code||'-')} | ${esc2(c.phone||'-')}</div><div class="muted">${esc2(c.address||'-')}</div></button>`).join(''):'<div class="muted">ไม่พบลูกค้าค่ะ หากเป็นลูกค้าใหม่ให้เพิ่มจากเมนู “ข้อมูลลูกค้า”</div>';
+  };
+
+  // Existing function expects numeric user_id; support fallback by external_code.
+  const oldSelect=window.selectExistingCustomerBooking;
+  window.selectExistingCustomerBooking=async function(customerId,externalCode){
+    if(customerId){
+      return oldSelect(customerId);
+    }
+    const c=CUSTOMERS_DATA.find(x=>x.id===externalCode);
+    if(!c){showToast('ไม่พบข้อมูลลูกค้าค่ะ');return;}
+    const box=document.getElementById('bookingCustomerForm');if(!box)return;
+    const houses=c.houses||[];
+    box.innerHTML=`<div class="card" style="margin-top:12px;"><b>${esc2(c.name)}</b><div class="muted" style="margin-top:4px;">รหัสลูกค้า: ${esc2(c.id)} | ${esc2(c.phone)}</div><div style="margin-top:14px;"><b>เลือกบ้าน / สถานที่</b>${houses.length?houses.map((h,i)=>`<button class="card" style="display:block;width:100%;text-align:left;margin-top:8px;" onclick="selectBookingPropertyLocal('${esc2(c.id)}',${i})"><b>🏠 ${esc2(h.name)}</b><div class="muted">${esc2(h.address)}</div></button>`).join(''):'<div class="muted" style="margin-top:8px;">ยังไม่มีบ้าน/สถานที่</div>'}</div><button class="btn" style="width:100%;margin-top:12px;" onclick="openNewPropertyForm('${esc2(c.id)}')">+ เพิ่มบ้าน / สถานที่</button></div>`;
+  };
+  window.selectBookingPropertyLocal=function(customerId,index){
+    const c=getCustomer(customerId),h=c?.houses?.[index];if(!c||!h)return;
+    const prods=PRODUCTS_DATA.map(p=>`<option value="${esc2(p.id)}">${esc2(p.brand)} ${esc2(p.model)}</option>`).join('');
+    const airs=h.airs||[];
+    document.getElementById('bookingCustomerForm').innerHTML=`<div class="card"><b>${esc2(c.name)} — ${esc2(h.name)}</b><div class="muted" style="margin-top:4px;">${esc2(h.address)}</div><div style="margin-top:14px;"><b>เลือกเครื่องแอร์</b>${airs.length?airs.map((a,i)=>`<label class="card" style="display:block;margin-top:8px;cursor:pointer;"><input type="checkbox" name="localBookingAC" value="${i}"> ${esc2(a.room)} — ${esc2(a.product)}</label>`).join(''):'<div class="muted" style="margin-top:8px;">ยังไม่มีเครื่องแอร์</div>'}<button class="btn" style="margin-top:10px;width:100%;" onclick="openNewAirForm('${esc2(c.id)}',${index})">+ เพิ่มเครื่องแอร์</button></div><div style="display:grid;gap:10px;margin-top:14px;"><label>บริการ<select id="localBookingService" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;"><option>ล้างแอร์</option><option>ซ่อมแอร์</option><option>ติดตั้งเครื่องใหม่</option><option>ตรวจเช็ก / บำรุงรักษา</option></select></label><label>วันที่<input id="localBookingDate" type="date" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;"></label><label>เวลา<input id="localBookingTime" type="time" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;"></label></div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveLocalBooking('${esc2(c.id)}',${index})">สร้าง Booking</button></div>`;
+  };
+  window.saveLocalBooking=async function(customerId,index){
+    const c=getCustomer(customerId),h=c?.houses?.[index],selected=[...document.querySelectorAll('input[name="localBookingAC"]:checked')].map(x=>h.airs[Number(x.value)]?.room).filter(Boolean);
+    const date=val('localBookingDate'),time=val('localBookingTime'),service=val('localBookingService');if(!c||!h||!date||!time){showToast('กรุณาเลือกเครื่อง วันที่ และเวลาให้ครบค่ะ');return;}
+    // Try real Supabase insert when customer exists in users; otherwise keep the local demo record.
+    const u=await supabaseClient.from('users').select('user_id').eq('external_code',customerId).maybeSingle();
+    if(u.data?.user_id){
+      const bookingCode=`BK${customerId}-${date.replaceAll('-','')}-${String(Date.now()).slice(-3)}`;
+      const b=await supabaseClient.from('bookings').insert({booking_code:bookingCode,customer_id:u.data.user_id,service_type:service,scheduled_date:date,scheduled_time:time,status:'confirmed'}).select('booking_id').maybeSingle();
+      if(b.error)console.warn('สร้าง Booking ใน Supabase ไม่สำเร็จ:',b.error);
+      else if(b.data?.booking_id){const j=await supabaseClient.from('job_orders').insert({booking_id:b.data.booking_id,customer_id:u.data.user_id,service_type:service,scheduled_date:date,scheduled_time_slot:time,details:JSON.stringify({air_conditioner_rooms:selected}),status:'pending',progress:0,job_code:`JOB-${customerId}-${date.replaceAll('-','')}-${String(Date.now()).slice(-3)}`});if(j.error)console.warn('สร้าง Job ใน Supabase ไม่สำเร็จ:',j.error);}
+    }
+    closeModal();showToast(`สร้าง Booking ของ ${c.name} เรียบร้อยแล้วค่ะ`);await renderBookings();await loadJobsFromSupabase();
+  };
+
+  // Remove the obsolete "+ ลูกค้าใหม่" from any booking modal content.
+  const oldOpenBooking=window.openCreateBookingModal;
+  window.openCreateBookingModal=function(){
+    openModal(`<h3>สร้าง Booking ใหม่</h3><div id="bookingCustomerForm" style="margin-top:14px;"></div>`);
+    showExistingCustomerBooking();
+  };
+
+  // Settings initial render
+  const oldRenderAll=window.renderAllData;
+  window.renderAllData=function(){oldRenderAll();renderSettings();};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderSettings,0));
+})();
+
 </script>
 </body>
 </html>
