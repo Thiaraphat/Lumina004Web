@@ -2856,7 +2856,10 @@ function viewErrorDetail(errorId){
     showToast('กำลังบันทึก Booking จริงลงฐานข้อมูลค่ะ');
 
     const {data:user,error:userError}=await supabaseClient
-      .from('users').select('user_id,external_code,full_name').eq('user_id', customerId).maybeSingle();
+  .from('users')
+  .select('user_id,external_code,full_name')
+  .eq('external_code', customerId)
+  .maybeSingle();
     if(userError||!user){
       console.error('โหลดลูกค้าไม่สำเร็จ:',userError);
       showToast('ไม่พบลูกค้าในฐานข้อมูล จึงยังสร้าง Booking จริงไม่ได้ค่ะ');
