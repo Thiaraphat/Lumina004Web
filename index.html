@@ -2687,19 +2687,7 @@ function viewErrorDetail(errorId){
     const airs=h.airs||[];
     document.getElementById('bookingCustomerForm').innerHTML=`<div class="card"><b>${esc2(c.name)} — ${esc2(h.name)}</b><div class="muted" style="margin-top:4px;">${esc2(h.address)}</div><div style="margin-top:14px;"><b>เลือกเครื่องแอร์</b>${airs.length?airs.map((a,i)=>`<label class="card" style="display:block;margin-top:8px;cursor:pointer;"><input type="checkbox" name="localBookingAC" value="${i}"> ${esc2(a.room)} — ${esc2(a.product)}</label>`).join(''):'<div class="muted" style="margin-top:8px;">ยังไม่มีเครื่องแอร์</div>'}<button class="btn" style="margin-top:10px;width:100%;" onclick="openNewAirForm('${esc2(c.id)}',${index})">+ เพิ่มเครื่องแอร์</button></div><div style="display:grid;gap:10px;margin-top:14px;"><label>บริการ<select id="localBookingService" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;"><option>ล้างแอร์</option><option>ซ่อมแอร์</option><option>ติดตั้งเครื่องใหม่</option><option>ตรวจเช็ก / บำรุงรักษา</option></select></label><label>วันที่<input id="localBookingDate" type="date" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;"></label><label>เวลา<input id="localBookingTime" type="time" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;"></label></div><button class="btn success" style="width:100%;margin-top:16px;" onclick="saveLocalBooking('${esc2(c.id)}',${index})">สร้าง Booking</button></div>`;
   };
-  window.saveLocalBooking=async function(customerId,index){
-    const c=getCustomer(customerId),h=c?.houses?.[index],selected=[...document.querySelectorAll('input[name="localBookingAC"]:checked')].map(x=>h.airs[Number(x.value)]?.room).filter(Boolean);
-    const date=val('localBookingDate'),time=val('localBookingTime'),service=val('localBookingService');if(!c||!h||!date||!time){showToast('กรุณาเลือกเครื่อง วันที่ และเวลาให้ครบค่ะ');return;}
-    // Try real Supabase insert when customer exists in users; otherwise keep the local demo record.
-    const u=await supabaseClient.from('users').select('user_id').eq('external_code',customerId).maybeSingle();
-    if(u.data?.user_id){
-      const bookingCode=`BK${customerId}-${date.replaceAll('-','')}-${String(Date.now()).slice(-3)}`;
-      const b=await supabaseClient.from('bookings').insert({booking_code:bookingCode,customer_id:u.data.user_id,service_type:service,scheduled_date:date,scheduled_time:time,status:'confirmed'}).select('booking_id').maybeSingle();
-      if(b.error)console.warn('สร้าง Booking ใน Supabase ไม่สำเร็จ:',b.error);
-      else if(b.data?.booking_id){const j=await supabaseClient.from('job_orders').insert({booking_id:b.data.booking_id,customer_id:u.data.user_id,service_type:service,scheduled_date:date,scheduled_time_slot:time,details:JSON.stringify({air_conditioner_rooms:selected}),status:'pending',progress:0,job_code:`JOB-${customerId}-${date.replaceAll('-','')}-${String(Date.now()).slice(-3)}`});if(j.error)console.warn('สร้าง Job ใน Supabase ไม่สำเร็จ:',j.error);}
-    }
-    closeModal();showToast(`สร้าง Booking ของ ${c.name} เรียบร้อยแล้วค่ะ`);await renderBookings();await loadJobsFromSupabase();
-  };
+ 
 
   // Remove the obsolete "+ ลูกค้าใหม่" from any booking modal content.
   const oldOpenBooking=window.openCreateBookingModal;
@@ -2733,7 +2721,7 @@ function viewErrorDetail(errorId){
     const {data: customer, error: customerError} = await supabaseClient
       .from('users')
       .select('user_id,external_code,full_name')
-      .eq('user_id', customerId)
+.eq('external_code', String(customerId))
       .maybeSingle();
 
     if(customerError || !customer){
