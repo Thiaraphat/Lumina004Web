@@ -1245,7 +1245,6 @@ function showExistingCustomerBooking(){
    .or(
   `full_name.ilike.%${keyword}%,external_code.ilike.%${keyword}%`
 )
-    )
     .order('user_id', { ascending: true })
     .limit(20);
 
